@@ -1,0 +1,33 @@
+﻿using Prototypes.Core.ECS.MorpehWorkaround;
+using System.Runtime.CompilerServices;
+
+namespace Scellecs.Morpeh.Transforms
+{
+    public static class DestroyExtensions
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void RequestDestroy(this Entity entity)
+        {
+            entity.AddComponent<DestroyMarker>();
+        }
+
+        public static void RequestDestroyHierarchy(this Entity entity)
+        {
+            if (entity.Has<Child>())
+            {
+                var children = entity.GetComponent<Child>();
+                var world = MorpehInternalTools.GetWorldFromEntity(entity);
+
+                for (int i = 0; i < children.Value.Length; i++)
+                {
+                    if (world.TryGetEntity(children.Value[i], out var child))
+                    {
+                        RequestDestroyHierarchy(child);
+                    }
+                }
+            }
+
+            entity.RequestDestroy();
+        }
+    }
+}
