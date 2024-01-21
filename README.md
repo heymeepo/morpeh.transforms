@@ -75,9 +75,9 @@ childEntity.SetComponent(new LocalTransform()
     scale = 1f
 });
 
-childEntity.SetParent(rootEntity); //Set new parent
+childEntity.SetParent(rootEntity);         //Set new parent
 childEntity.SetParent(anyOtherRootEntity); //Change parent
-childEntity.SetParent(null); //Unparent
+childEntity.SetParent(null);               //Unparent
 ```
 **Attention**: If the entity has a ```Parent```, Position, Rotation, and Scale are relative to that parent. If the entity doesn't have a ```Parent```, the transform is relative to the origin of the world.
 
