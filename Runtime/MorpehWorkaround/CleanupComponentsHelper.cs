@@ -21,7 +21,7 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
         {
             var offset = definition.offset;
 
-            if (cleanupTypes == null || cleanupTypes.Count == 0)
+            if (cleanupTypes == null)
             {
                 Load();
             }
@@ -48,21 +48,26 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
             }
         }
 
-        private static void Load()
+        internal static void Load()
         {
-            var types = GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => type.IsValueType && typeof(ICleanupComponent).IsAssignableFrom(type));
+            if (cleanupTypes == null) 
+            {
+                var types = GetAssemblies()
+                    .SelectMany(assembly => assembly.GetTypes())
+                    .Where(type => type.IsValueType && typeof(ICleanupComponent).IsAssignableFrom(type));
 
-            cleanupTypes = new HashSet<Type>(types);
+                cleanupTypes = new HashSet<Type>(types);
+                cleanupOffsets = new IntHashSet();
+                nonCleanupOffsets = new IntHashSet();
+            }
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Cleanup()
         {
-            cleanupTypes?.Clear();
-            cleanupOffsets?.Clear();
-            nonCleanupOffsets?.Clear();
+            cleanupTypes = null;
+            cleanupOffsets = null;
+            nonCleanupOffsets = null;
         }
 
         private static IEnumerable<Assembly> GetAssemblies()

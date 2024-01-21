@@ -76,33 +76,38 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
         public static World GetWorldFromEntity(Entity entity) => entity.world;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public unsafe static void RemoveAllExceptCleanupComponents(Entity entity)
+        public static void RemoveAllExceptCleanupComponents(Entity entity)
         {
             entity.world.ThreadSafetyCheck();
 
-            if (entity.currentArchetypeLength > 0)
+            unsafe
             {
-                int* offsets = stackalloc int[entity.components.count]; int i = 0;
-
-                foreach (var offset in entity.components)
+                if (entity.currentArchetypeLength > 0)
                 {
-                    offsets[i++] = offset;
-                }
+                    int* offsets = stackalloc int[entity.components.count]; int i = 0;
 
-                for (int j = 0; j < i; j++)
-                {
-                    var typeDefinition = CommonTypeIdentifier.offsetTypeAssociation[offsets[j]];
-
-                    if (CleanupComponentsHelper.IsCleanupComponent(ref typeDefinition))
+                    foreach (var offset in entity.components)
                     {
-                        continue;
+                        offsets[i++] = offset;
                     }
 
-                    var stash = Stash.stashes.data[entity.world.stashes.GetValueByKey(typeDefinition.id)];
-                    stash.Remove(entity);
+                    for (int j = 0; j < i; j++)
+                    {
+                        var typeDefinition = CommonTypeIdentifier.offsetTypeAssociation[offsets[j]];
+
+                        if (CleanupComponentsHelper.IsCleanupComponent(ref typeDefinition))
+                        {
+                            continue;
+                        }
+
+                        var stash = Stash.stashes.data[entity.world.stashes.GetValueByKey(typeDefinition.id)];
+                        stash.Remove(entity);
+                    }
                 }
             }
         }
+
+        public static void WarmupCleanupComponents() => CleanupComponentsHelper.Load();
 #if MORPEH_BURST
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, Type componentType) where TUnmanaged : unmanaged
