@@ -260,6 +260,32 @@ namespace Scellecs.Morpeh.Transforms
     }
 
     [BurstCompile]
+    internal struct GatherChildEntitiesJob : IJobFor
+    {
+        [ReadOnly] public NativeFilter parentsFilter;
+        [ReadOnly] public NativeStash<Child> childStash;
+        [ReadOnly] public NativeStash<Parent> parentsStash;
+        [WriteOnly] public NativeQueue<EntityId>.ParallelWriter children;
+
+        public void Execute(int index)
+        {
+            var parentEntityId = parentsFilter[index];
+            var child = childStash.Get(parentEntityId);
+
+            for (int i = 0; i < child.Value.Length; i++)
+            {
+                var childEntityId = child.Value[i];
+                var parentFromChild = parentsStash.Get(childEntityId, out bool hasParent);
+
+                if (hasParent && parentFromChild.Value == parentEntityId)
+                {
+                    children.Enqueue(childEntityId);
+                }
+            }
+        }
+    }
+
+    [BurstCompile]
     internal struct FixupChangedChildrenJob : IJob
     {
         public NativeStash<Child> childStash;
