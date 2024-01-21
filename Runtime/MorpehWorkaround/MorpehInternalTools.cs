@@ -82,27 +82,63 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
 
             unsafe
             {
+                bool disposing = true;
+
                 if (entity.currentArchetypeLength > 0)
                 {
-                    int* offsets = stackalloc int[entity.components.count]; int i = 0;
+                    long* ids = stackalloc long[entity.components.count]; 
+                    int offsetsCount = 0;
+                    int cleanupOffsetsCount = 0;
 
                     foreach (var offset in entity.components)
                     {
-                        offsets[i++] = offset;
-                    }
-
-                    for (int j = 0; j < i; j++)
-                    {
-                        var typeDefinition = CommonTypeIdentifier.offsetTypeAssociation[offsets[j]];
+                        var typeDefinition = CommonTypeIdentifier.offsetTypeAssociation[offset];
 
                         if (CleanupComponentsHelper.IsCleanupComponent(ref typeDefinition))
                         {
-                            continue;
+                            cleanupOffsetsCount++;
+                        }
+                        else
+                        {
+                            ids[offsetsCount++] = typeDefinition.id;
+                        }
+                    }
+
+                    if (cleanupOffsetsCount > 0)
+                    {
+                        for (int i = 0; i < offsetsCount; i++)
+                        {
+                            var stash = Stash.stashes.data[entity.world.stashes.GetValueByKey(ids[i])];
+                            stash.Remove(entity);
                         }
 
-                        var stash = Stash.stashes.data[entity.world.stashes.GetValueByKey(typeDefinition.id)];
-                        stash.Remove(entity);
+                        disposing = false;
                     }
+                    else
+                    {
+                        for (int i = 0; i < offsetsCount; i++)
+                        {
+                            var stash = Stash.stashes.data[entity.world.stashes.GetValueByKey(ids[i])];
+                            stash.Clean(entity);
+                        }
+                    }
+                }
+
+                if (disposing)
+                {
+                    if (entity.previousArchetypeLength > 0)
+                    {
+                        entity.world.archetypes.GetValueByKey(entity.previousArchetype)?.Remove(entity);
+                    }
+                    else
+                    {
+                        entity.world.archetypes.GetValueByKey(entity.currentArchetype)?.Remove(entity);
+                    }
+
+                    entity.world.ApplyRemoveEntity(entity.entityId.id);
+                    entity.world.dirtyEntities.Unset(entity.entityId.id);
+
+                    entity.DisposeFast();
                 }
             }
         }
