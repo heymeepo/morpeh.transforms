@@ -5,7 +5,7 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
 {
     public struct NativeUnmanagedStash<T> where T : unmanaged
     {
-        public NativeIntHashMap<T> componentsAsUnmanagedType;
+        public NativeIntHashMap<T> reinterpretedComponents;
         public NativeWorld world;
     }
 }

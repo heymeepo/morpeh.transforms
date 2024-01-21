@@ -10,7 +10,7 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref T Get<T>(this ref NativeUnmanagedStash<T> stash, in EntityId entityId) where T : unmanaged
         {
-            return ref stash.componentsAsUnmanagedType.GetValueRefByKey(in entityId.id);
+            return ref stash.reinterpretedComponents.GetValueRefByKey(in entityId.id);
         }
     }
 }

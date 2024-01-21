@@ -117,7 +117,7 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
 
             return new NativeUnmanagedStash<TUnmanaged>()
             {
-                componentsAsUnmanagedType = nativeIntHashMap,
+                reinterpretedComponents = nativeIntHashMap,
                 world = world.AsNative()
             };
         }

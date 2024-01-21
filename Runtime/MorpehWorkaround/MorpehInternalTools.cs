@@ -1,4 +1,5 @@
 ﻿using Scellecs.Morpeh;
+using Scellecs.Morpeh.Collections;
 using System;
 using System.Runtime.CompilerServices;
 
@@ -65,7 +66,7 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Entity GetEntity(this World world, in EntityId entityId)
+        public static Entity GetEntity(World world, in EntityId entityId)
         {
             world.ThreadSafetyCheck();
             return world.entities[entityId.id];
@@ -73,6 +74,35 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static World GetWorldFromEntity(Entity entity) => entity.world;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe static void RemoveAllExceptCleanupComponents(Entity entity)
+        {
+            entity.world.ThreadSafetyCheck();
+
+            if (entity.currentArchetypeLength > 0)
+            {
+                int* offsets = stackalloc int[entity.components.count]; int i = 0;
+
+                foreach (var offset in entity.components)
+                {
+                    offsets[i++] = offset;
+                }
+
+                for (int j = 0; j < i; j++)
+                {
+                    var typeDefinition = CommonTypeIdentifier.offsetTypeAssociation[offsets[j]];
+
+                    if (CleanupComponentsHelper.IsCleanupComponent(ref typeDefinition))
+                    {
+                        continue;
+                    }
+
+                    var stash = Stash.stashes.data[entity.world.stashes.GetValueByKey(typeDefinition.id)];
+                    stash.Remove(entity);
+                }
+            }
+        }
 #if MORPEH_BURST
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, Type componentType) where TUnmanaged : unmanaged

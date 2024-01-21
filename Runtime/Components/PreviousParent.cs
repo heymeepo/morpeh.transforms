@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypes.Core.ECS.MorpehWorkaround;
+using System;
 
 namespace Scellecs.Morpeh.Transforms
 {
@@ -10,7 +11,7 @@ namespace Scellecs.Morpeh.Transforms
     /// add, remove, or modify it in your code.
     /// </remarks>
     [Serializable]
-    internal struct PreviousParent : IComponent
+    internal struct PreviousParent : ICleanupComponent
     {
         /// <summary>
         /// The previous parent entity

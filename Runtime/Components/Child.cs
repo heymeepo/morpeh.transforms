@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Prototypes.Core.ECS.MorpehWorkaround;
+using System;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 
@@ -15,7 +16,7 @@ namespace Scellecs.Morpeh.Transforms
     /// <see cref="Parent"/> components from each child entity.
     /// </remarks>
     [Serializable]
-    public struct Child : IComponent, IDisposable
+    public struct Child : ICleanupComponent, IDisposable
     {
         /// <summary>
         /// A child entity

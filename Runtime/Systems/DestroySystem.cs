@@ -1,4 +1,7 @@
-﻿namespace Scellecs.Morpeh.Transforms
+﻿using Prototypes.Core.ECS.MorpehWorkaround;
+using UnityEngine;
+
+namespace Scellecs.Morpeh.Transforms
 {
     public sealed class DestroySystem : ICleanupSystem
     {
@@ -15,7 +18,7 @@
         {
             foreach (var entity in destroyFilter)
             {
-                entity.Dispose();
+                MorpehInternalTools.RemoveAllExceptCleanupComponents(entity);
             }
         }
 

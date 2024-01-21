@@ -19,6 +19,7 @@ namespace Scellecs.Morpeh.Transforms
     {
         public World World { get; set; }
 
+        private Filter deletedParentsFilter;
         private Filter newParentsFilter;
         private Filter removedParentsFilter;
         private Filter existingParentsFilter;
@@ -29,6 +30,11 @@ namespace Scellecs.Morpeh.Transforms
 
         public void OnAwake()
         {
+            deletedParentsFilter = World.Filter
+                .With<Child>()
+                .Without<LocalToWorld>()
+                .Build();
+
             newParentsFilter = World.Filter
                 .With<Parent>()
                 .Without<PreviousParent>()
@@ -51,16 +57,55 @@ namespace Scellecs.Morpeh.Transforms
 
         public void OnUpdate(float deltaTime)
         {
+            UpdateDeletedParents();
             UpdateRemoveParents();
             UpdateNewParents();
             UpdateChangeParents();
+        }
+
+        private void UpdateDeletedParents()
+        {
+            if (deletedParentsFilter.IsEmpty())
+            {
+                return;
+            }
+
+            var childEntities = new NativeQueue<EntityId>(Allocator.TempJob);
+            var parentsFilter = deletedParentsFilter.AsNative();
+
+            new GatherChildEntitiesJob()
+            {
+                parentsFilter = parentsFilter,
+                childStash = childStash.AsNative(),
+                parentsStash = parentStash.AsNative(),
+                children = childEntities.AsParallelWriter()
+            }
+            .ScheduleParallel(parentsFilter.length, 32, default).Complete();
+
+            while (childEntities.TryDequeue(out var childId))
+            {
+                if (World.TryGetEntity(childId, out var childEnt))
+                {
+                    parentStash.Remove(childEnt);
+                    previousParentStash.Remove(childEnt);
+                }
+            }
+
+            childEntities.Dispose(default).Complete();
+
+            foreach (var entity in deletedParentsFilter)
+            {
+                childStash.Remove(entity);
+            }
+
+            World.Commit();
         }
 
         private void UpdateRemoveParents()
         {
             foreach (var childEntity in removedParentsFilter)
             {
-                ref var prevParent = ref parentStash.Get(childEntity);
+                ref var prevParent = ref previousParentStash.Get(childEntity);
 
                 if (World.TryGetEntity(prevParent.Value, out var parentEntity))
                 {
