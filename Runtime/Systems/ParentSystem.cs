@@ -27,6 +27,7 @@ namespace Scellecs.Morpeh.Transforms
         private Stash<Child> childStash;
         private Stash<Parent> parentStash;
         private Stash<PreviousParent> previousParentStash;
+        private Stash<ParentChangedMarker> parentChangedStash;
 
         public void OnAwake()
         {
@@ -48,11 +49,13 @@ namespace Scellecs.Morpeh.Transforms
             existingParentsFilter = World.Filter
                 .With<Parent>()
                 .With<PreviousParent>()
+                .With<ParentChangedMarker>()
                 .Build();
 
             childStash = World.GetStash<Child>().AsDisposable();
             parentStash = World.GetStash<Parent>();
             previousParentStash = World.GetStash<PreviousParent>();
+            parentChangedStash = World.GetStash<ParentChangedMarker>();
         }
 
         public void OnUpdate(float deltaTime)
@@ -61,6 +64,7 @@ namespace Scellecs.Morpeh.Transforms
             UpdateRemoveParents();
             UpdateNewParents();
             UpdateChangeParents();
+            CleanupChangedParentMarkers();
         }
 
         private void UpdateDeletedParents()
@@ -249,6 +253,8 @@ namespace Scellecs.Morpeh.Transforms
 
             JobHandleUnsafeUtility.CombineDependencies(disposeHandles, 5).Complete();
         }
+
+        private void CleanupChangedParentMarkers() => parentChangedStash.RemoveAll();
 
         public void Dispose() { }
     }

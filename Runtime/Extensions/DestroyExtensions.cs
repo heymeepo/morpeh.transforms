@@ -6,12 +6,9 @@ namespace Scellecs.Morpeh.Transforms
     public static class DestroyExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RequestDestroy(this Entity entity)
-        {
-            entity.AddComponent<DestroyMarker>();
-        }
+        public static void Destroy(this Entity entity) => MorpehInternalTools.RemoveAllExceptCleanupComponents(entity);
 
-        public static void RequestDestroyHierarchy(this Entity entity)
+        public static void DestroyHierarchy(this Entity entity)
         {
             if (entity.Has<Child>())
             {
@@ -22,12 +19,12 @@ namespace Scellecs.Morpeh.Transforms
                 {
                     if (world.TryGetEntity(children.Value[i], out var child))
                     {
-                        RequestDestroyHierarchy(child);
+                        DestroyHierarchy(child);
                     }
                 }
             }
 
-            entity.RequestDestroy();
+            entity.Destroy();
         }
     }
 }

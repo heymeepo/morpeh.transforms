@@ -14,6 +14,7 @@
             else
             {
                 entity.SetComponent(new Parent() { Value = parent.ID });
+                entity.SetComponent(new ParentChangedMarker());
             }
         }
     }
