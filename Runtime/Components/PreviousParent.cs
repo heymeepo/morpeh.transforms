@@ -11,7 +11,7 @@ namespace Scellecs.Morpeh.Transforms
     /// add, remove, or modify it in your code.
     /// </remarks>
     [Serializable]
-    public struct PreviousParent : ICleanupComponent
+    internal struct PreviousParent : ICleanupComponent
     {
         /// <summary>
         /// The previous parent entity
