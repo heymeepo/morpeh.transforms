@@ -20,6 +20,10 @@ namespace Scellecs.Morpeh.Transforms
 
         public override void OnUpdate(float deltaTime) => system.OnUpdate(deltaTime);
 
-        public override void Dispose() => system.Dispose();
+        public override void Dispose()
+        {
+            system.Dispose();
+            system = null;
+        }
     }
 }
