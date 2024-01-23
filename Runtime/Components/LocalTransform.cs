@@ -13,7 +13,7 @@ namespace Scellecs.Morpeh.Transforms
     /// If the entity has a <see cref="Parent"/> component, LocalTransform is relative to that parent.
     /// Otherwise, it is in world space.
     /// </remarks>
-    [BurstCompile]
+    [BurstCompile, Serializable]
     public struct LocalTransform : IComponent
     {
         /// <summary>
