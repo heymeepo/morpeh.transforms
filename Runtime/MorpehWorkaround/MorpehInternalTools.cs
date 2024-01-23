@@ -80,75 +80,73 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
         {
             entity.world.ThreadSafetyCheck();
 
-            unsafe
+            Span<long> ids = stackalloc long[entity.components.count];
+            Span<long> cleanupIds = stackalloc long[entity.components.count];
+            int idsCount = 0;
+            int cleanupIdsCount = 0;
+
+            if (entity.currentArchetypeLength > 0)
             {
-                long* ids = stackalloc long[entity.components.count];
-                long* cleanupIds = stackalloc long[entity.components.count];
-                int offsetsCount = 0;
-                int cleanupOffsetsCount = 0;
-
-                if (entity.currentArchetypeLength > 0)
+                foreach (var offset in entity.components)
                 {
-                    foreach (var offset in entity.components)
+                    var typeDefinition = CommonTypeIdentifier.offsetTypeAssociation[offset];
+
+                    if (CleanupComponentsHelper.IsCleanupComponent(ref typeDefinition))
                     {
-                        var typeDefinition = CommonTypeIdentifier.offsetTypeAssociation[offset];
-
-                        if (CleanupComponentsHelper.IsCleanupComponent(ref typeDefinition))
-                        {
-                            cleanupIds[cleanupOffsetsCount++] = typeDefinition.id;
-                        }
-                        else
-                        {
-                            ids[offsetsCount++] = typeDefinition.id;
-                        }
-                    }
-
-                    for (int i = 0; i < offsetsCount; i++)
-                    {
-                        var stash = Stash.stashes.data[entity.world.stashes.GetValueByKey(ids[i])];
-                        stash.Clean(entity);
-                    }
-                }
-
-                if (cleanupOffsetsCount > 0)
-                {
-                    if (entity.previousArchetypeLength == 0)
-                    {
-                        entity.previousArchetype = entity.currentArchetype;
-                        entity.previousArchetypeLength = entity.currentArchetypeLength;
-                    }
-
-                    entity.currentArchetype = 0;
-                    entity.currentArchetypeLength = 0;
-                    entity.components.Clear();
-
-                    for (int i = 0; i < cleanupOffsetsCount; i++)
-                    {
-                        var stash = Stash.stashes.data[entity.world.stashes.GetValueByKey(cleanupIds[i])];
-                        entity.currentArchetype ^= stash.typeId;
-                        entity.currentArchetypeLength++;
-                        entity.components.Set(stash.offset);
-                    }
-
-                    entity.world.dirtyEntities.Set(entity.entityId.id);
-                    entity.isDirty = true;
-                }
-                else
-                {
-                    if (entity.previousArchetypeLength > 0)
-                    {
-                        entity.world.archetypes.GetValueByKey(entity.previousArchetype)?.Remove(entity);
+                        cleanupIds[cleanupIdsCount++] = typeDefinition.id;
                     }
                     else
                     {
-                        entity.world.archetypes.GetValueByKey(entity.currentArchetype)?.Remove(entity);
+                        ids[idsCount++] = typeDefinition.id;
                     }
+                }
 
-                    entity.world.ApplyRemoveEntity(entity.entityId.id);
-                    entity.world.dirtyEntities.Unset(entity.entityId.id);
-                    entity.DisposeFast();
+                for (int i = 0; i < idsCount; i++)
+                {
+                    var stash = Stash.stashes.data[entity.world.stashes.GetValueByKey(ids[i])];
+                    stash.Clean(entity);
                 }
             }
+
+            if (cleanupIdsCount > 0)
+            {
+                if (entity.previousArchetypeLength == 0)
+                {
+                    entity.previousArchetype = entity.currentArchetype;
+                    entity.previousArchetypeLength = entity.currentArchetypeLength;
+                }
+
+                entity.currentArchetype = 0;
+                entity.currentArchetypeLength = 0;
+                entity.components.Clear();
+
+                for (int i = 0; i < cleanupIdsCount; i++)
+                {
+                    var stash = Stash.stashes.data[entity.world.stashes.GetValueByKey(cleanupIds[i])];
+                    entity.currentArchetype ^= stash.typeId;
+                    entity.currentArchetypeLength++;
+                    entity.components.Set(stash.offset);
+                }
+
+                entity.world.dirtyEntities.Set(entity.entityId.id);
+                entity.isDirty = true;
+            }
+            else
+            {
+                if (entity.previousArchetypeLength > 0)
+                {
+                    entity.world.archetypes.GetValueByKey(entity.previousArchetype)?.Remove(entity);
+                }
+                else
+                {
+                    entity.world.archetypes.GetValueByKey(entity.currentArchetype)?.Remove(entity);
+                }
+
+                entity.world.ApplyRemoveEntity(entity.entityId.id);
+                entity.world.dirtyEntities.Unset(entity.entityId.id);
+                entity.DisposeFast();
+            }
+
         }
 
         public static void WarmupCleanupComponents() => CleanupComponentsHelper.Load();
