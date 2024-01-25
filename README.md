@@ -103,3 +103,79 @@ A new type of components is introduced. To create a cleanup component, define a 
 When you try to destroy an entity with an attached cleanup component using ```Entity.Destroy()``` or ```Entity.DestroyHierarchy()```, all non-cleanup components will be removed instead. The entity still exists until you remove all cleanup components from it manually.
 
 The ```ParentSystem``` uses cleanup components to fix the hierarchy after entity destruction. This means that entities with ```Parent``` or ```Child``` components after ```Entity.Destroy()``` or ```Entity.DestroyHierarchy()``` will exist until the ```ParentSystem``` is performed.
+
+## Interaction with hierarchy and dangerous operations.
+
+Interaction with the hierarchies within ECS is a sufficiently complex and intricate task. Below are some potentially dangerous operations on entities and their solutions.
+
+Let's assume you have declared a filter that includes the Health component. And you want to destroy all entities along with their hierarchies whose health values are less than or equal to 0.
+
+```csharp
+    private Filter healthFilter;
+
+    public void OnAwake()
+    {
+        healthFilter = World.Filter.With<HealthComponent>().Build();
+    }
+
+    public void OnUpdate(float deltaTime)
+    {
+        foreach (var entity in healthFilter)
+        {
+            var health = entity.GetComponent<HealthComponent>();
+
+            if (health.value <= 0f)
+            {
+                entity.DestroyHierarchy();
+            }
+        }
+    }
+```
+
+It's not okay.
+
+The problem lies in the fact that child entities could have also included in this filter, and calling ```DestroyHierarchy``` will destroy the Health components on child entities as well. Attempting to call ```entity.GetComponent<HealthComponent>()``` on such a destroyed entity in subsequent filter iterations will result in a runtime error.
+
+The simplest solution to this situation is to create a buffer for entities that need to be destroyed and then destroy them after iterating through the filter.
+
+```csharp
+    private Filter healthFilter;
+    private Queue<Entity> entitiesToDestroy;
+
+    public void OnAwake()
+    {
+        healthFilter = World.Filter.With<HealthComponent>().Build();
+        entitiesToDestroy = new Queue<Entity>();
+    }
+
+    public void OnUpdate(float deltaTime)
+    {
+        foreach (var entity in healthFilter)
+        {
+            var health = entity.GetComponent<HealthComponent>();
+
+            if (health.value <= 0f)
+            {
+                entitiesToDestroy.Enqueue(entity);
+            }
+        }
+
+        while (entitiesToDestroy.Count > 0)
+        {
+            var entity = entitiesToDestroy.Dequeue();
+            entity.DestroyHierarchy();
+        }
+    }
+```
+If you are using the JobSystem, you are likely familiar with this approach, as currently there is no capability to destroy entities during the execution of parallel jobs.
+
+Calling the ```DestroyHierarchy``` is safe under the condition that you are not attempting to access components from the list of entities you are destroying.
+
+It's also worth noting that if you have the ability to exclude the ```Parent``` component from the filter and operate only on **root** entities, the following operations on entities and their child entities are completely safe, even during iteration through the filter:
+
+- Has
+- AddComponent
+- SetComponent
+- RemoveComponent
+- DestroyHierarchy
+- Destroy
