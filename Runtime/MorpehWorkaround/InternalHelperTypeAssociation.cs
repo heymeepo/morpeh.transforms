@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using UnityEngine;
 using UnityEngine.Scripting;
 
@@ -14,15 +13,13 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
 {
     internal static class InternalHelperTypeAssociation
     {
-        private static int idCounter = 0;
-
-        private static Dictionary<Type, InternalAPIHelper> typeAssociations = new Dictionary<Type, InternalAPIHelper>();
-        private static List<InternalAPIHelper> idTypeAssociations = new List<InternalAPIHelper>();
+        private static Dictionary<Type, InternalAPIHelper> typeAssociation = new Dictionary<Type, InternalAPIHelper>();
+        private static Dictionary<long, InternalAPIHelper> idTypeAssociation = new Dictionary<long, InternalAPIHelper>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static InternalAPIHelper Get(Type type)
         {
-            if (typeAssociations.ContainsKey(type) == false)
+            if (typeAssociation.ContainsKey(type) == false)
             {
                 if ((typeof(IComponent).IsAssignableFrom(type) && type.IsValueType) == false)
                 {
@@ -34,44 +31,43 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
                 method.Invoke(null, null);
             }
 
-            return typeAssociations[type];
+            return typeAssociation[type];
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static InternalAPIHelper GetFast(ComponentTypeId id)
+        internal static InternalAPIHelper Get(long typeId)
         {
-            if (id.IsValid() == false)
+            if (idTypeAssociation.TryGetValue(typeId, out var helper))
             {
-                throw new ArgumentException($"Invalid typeId");
+                return helper;
             }
 
-            return idTypeAssociations[id.id - 1];
+            throw new ArgumentException("Invalid TypeId!");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void Set<T>(InternalAPIHelper<T> helper) where T : unmanaged, IComponent
         {
-            typeAssociations.Add(typeof(T), helper);
-            idTypeAssociations.Add(helper);
-            helper.id = new ComponentTypeId() { id = Interlocked.Increment(ref idCounter) };
+            TypeIdentifier<T>.Warmup();
+            var info = TypeIdentifier<T>.info;
+            helper.id = info.id;
+            typeAssociation.Add(typeof(T), helper);
+            idTypeAssociation.Add(info.id, helper);
         }
-
-        internal static bool IsValid(this ComponentTypeId id) => id.id != 0;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Cleanup()
         {
-            idCounter = 0;
-            typeAssociations.Clear();
-            idTypeAssociations.Clear();
+            typeAssociation.Clear();
+            idTypeAssociation.Clear();
         }
     }
 
     internal abstract class InternalAPIHelper
     {
-        internal ComponentTypeId id;
+        internal long id;
 
         internal abstract void SetComponentBoxed(Entity entity, object component);
+
         internal abstract void RemoveComponentBoxed(Entity entity);
 #if MORPEH_BURST
         internal abstract NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStash<TUnmanaged>(World world) where TUnmanaged : unmanaged;

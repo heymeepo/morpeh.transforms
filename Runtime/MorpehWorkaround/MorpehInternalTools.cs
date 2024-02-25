@@ -16,9 +16,11 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetComponentBoxed(this Entity entity, object component, ComponentTypeId typeId)
+        public static void SetComponentBoxed(this Entity entity, object component, out long typeId)
         {
-            var helper = InternalHelperTypeAssociation.GetFast(typeId);
+            var type = component.GetType();
+            var helper = InternalHelperTypeAssociation.Get(type);
+            typeId = helper.id;
             helper.SetComponentBoxed(entity, component);
         }
 
@@ -38,21 +40,21 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RemoveComponentByTypeId(this Entity entity, ComponentTypeId typeId)
+        public static void RemoveComponentByTypeId(this Entity entity, long typeId)
         {
-            var helper = InternalHelperTypeAssociation.GetFast(typeId);
+            var helper = InternalHelperTypeAssociation.Get(typeId);
             helper.RemoveComponentBoxed(entity);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ComponentTypeId GetTypeId(object component)
+        public static long GetTypeId(object component)
         {
             var type = component.GetType();
             return GetTypeId(type);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ComponentTypeId GetTypeId(Type componentType)
+        public static long GetTypeId(Type componentType)
         {
             var helper = InternalHelperTypeAssociation.Get(componentType);
             return helper.id;
@@ -62,7 +64,7 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
         public static int GetLength<T>(this Stash<T> stash) where T : struct, IComponent
         {
             stash.world.ThreadSafetyCheck();
-            return stash.components.length - 1;
+            return stash.components.length;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -146,11 +148,17 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
                 entity.world.dirtyEntities.Unset(entity.entityId.id);
                 entity.DisposeFast();
             }
-
         }
 
         public static void WarmupCleanupComponents() => CleanupComponentsHelper.Load();
 #if MORPEH_BURST
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NativeUnmanagedStash<TUnmanaged> ReinterpretDangerous<TUnmanaged>(this Stash stash) where TUnmanaged : unmanaged
+        {
+            var helper = InternalHelperTypeAssociation.Get(stash.typeId);
+            return helper.CreateUnmanagedStash<TUnmanaged>(stash.world);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, Type componentType) where TUnmanaged : unmanaged
         {
@@ -159,9 +167,9 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, ComponentTypeId typeId) where TUnmanaged : unmanaged
+        public static NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, long typeId) where TUnmanaged : unmanaged
         {
-            var helper = InternalHelperTypeAssociation.GetFast(typeId);
+            var helper = InternalHelperTypeAssociation.Get(typeId);
             return helper.CreateUnmanagedStash<TUnmanaged>(world);
         }
 #endif
