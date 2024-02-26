@@ -20,7 +20,7 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
         {
             var type = component.GetType();
             var helper = InternalHelperTypeAssociation.Get(type);
-            typeId = helper.id;
+            typeId = helper.GetTypeInfo().id;
             helper.SetComponentBoxed(entity, component);
         }
 
@@ -57,7 +57,21 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
         public static long GetTypeId(Type componentType)
         {
             var helper = InternalHelperTypeAssociation.Get(componentType);
-            return helper.id;
+            return helper.GetTypeInfo().id;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static long GetTypeOffset(Type componentType)
+        {
+            var helper = InternalHelperTypeAssociation.Get(componentType);
+            return helper.GetTypeInfo().offset;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static long GetTypeOffset(long typeId)
+        {
+            var helper = InternalHelperTypeAssociation.Get(typeId);
+            return helper.GetTypeInfo().offset;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

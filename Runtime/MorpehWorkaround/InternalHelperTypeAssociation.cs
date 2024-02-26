@@ -49,7 +49,6 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
         {
             TypeIdentifier<T>.Warmup();
             var info = TypeIdentifier<T>.info;
-            helper.id = info.id;
             typeAssociation.Add(typeof(T), helper);
             idTypeAssociation.Add(info.id, helper);
         }
@@ -64,7 +63,7 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
 
     internal abstract class InternalAPIHelper
     {
-        internal long id;
+        internal abstract CommonTypeIdentifier.TypeInfo GetTypeInfo();
 
         internal abstract void SetComponentBoxed(Entity entity, object component);
 
@@ -80,6 +79,9 @@ namespace Prototypes.Core.ECS.MorpehWorkaround
 
         [Preserve]
         private static void Warmup() => InternalHelperTypeAssociation.Set(new InternalAPIHelper<T>());
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal override CommonTypeIdentifier.TypeInfo GetTypeInfo() => TypeIdentifier<T>.info;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal override void SetComponentBoxed(Entity entity, object component) => entity.world.GetStash<T>().Set(entity, (T)component);
