@@ -1,5 +1,4 @@
-﻿using Scellecs.Morpeh;
-#if MORPEH_BURST
+﻿#if MORPEH_BURST
 using Scellecs.Morpeh.Native;
 #endif
 using System;
@@ -9,7 +8,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Scripting;
 
-namespace Prototypes.Core.ECS.MorpehWorkaround
+namespace Scellecs.Morpeh.Workaround
 {
     internal static class InternalHelperTypeAssociation
     {

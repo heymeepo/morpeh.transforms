@@ -1,9 +1,8 @@
-﻿using Scellecs.Morpeh;
-using Scellecs.Morpeh.Collections;
+﻿using Scellecs.Morpeh.Collections;
 using System;
 using System.Runtime.CompilerServices;
 
-namespace Prototypes.Core.ECS.MorpehWorkaround
+namespace Scellecs.Morpeh.Workaround
 {
     public static class MorpehInternalTools
     {

@@ -1,8 +1,7 @@
-﻿using Scellecs.Morpeh;
-using System;
+﻿using System;
 using System.Linq;
 
-namespace Prototypes.Core.ECS.MorpehWorkaround
+namespace Scellecs.Morpeh.Workaround
 {
     public static class MorpehInternalDebug
     {

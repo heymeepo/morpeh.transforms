@@ -1,6 +1,4 @@
-﻿using Scellecs.Morpeh;
-
-namespace Prototypes.Core.ECS.MorpehWorkaround
+﻿namespace Scellecs.Morpeh.Workaround
 {
     public interface ICleanupComponent : IComponent { }
 }

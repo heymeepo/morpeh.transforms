@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-namespace Prototypes.Core.ECS.MorpehWorkaround
+namespace Scellecs.Morpeh.Workaround
 {
     internal static class CleanupComponentsHelper
     {

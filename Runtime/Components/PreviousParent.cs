@@ -1,4 +1,4 @@
-﻿using Prototypes.Core.ECS.MorpehWorkaround;
+﻿using Scellecs.Morpeh.Workaround;
 using System;
 
 namespace Scellecs.Morpeh.Transforms
