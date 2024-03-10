@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿#if MORPEH_BURST
+using System.Runtime.CompilerServices;
 using Unity.Collections;
 
 namespace Scellecs.Morpeh.Workaround.WorldAllocator
@@ -7,13 +8,14 @@ namespace Scellecs.Morpeh.Workaround.WorldAllocator
     {
         public World World { get; set; }
 
-        private AllocatorHelper<RewindableAllocator> worldAllocator;
+        private DoubleRewindableAllocators* worldAllocator;
 
-        public void OnAwake() => worldAllocator = World.RewindableAllocator().rwdAllocator;
+        public void OnAwake() => worldAllocator = World.UpdateAllocator().rwdAllocator;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void OnUpdate(float deltaTime) => worldAllocator.Allocator.Rewind();
+        public void OnUpdate(float deltaTime) => worldAllocator->Update();
 
         public void Dispose() { }
     }
 }
+#endif
