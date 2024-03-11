@@ -6,7 +6,7 @@ namespace Scellecs.Morpeh.Transforms
     public static class DestroyExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Destroy(this Entity entity) => MorpehInternalTools.RemoveAllExceptCleanupComponents(entity);
+        public static void Destroy(this Entity entity) => CleanupComponentsExtensions.RemoveAllExceptCleanupComponents(entity);
 
         public static void DestroyHierarchy(this Entity entity)
         {

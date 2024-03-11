@@ -92,7 +92,7 @@ namespace Scellecs.Morpeh.Workaround
         internal unsafe override NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStash<TUnmanaged>(World world)
         {
             var stash = world.GetStash<T>();
-            var hashMap = stash.components;
+            var hashMap = stash.map;
             var nativeIntHashMap = new NativeIntHashMap<TUnmanaged>();
 
             fixed (int* lengthPtr = &hashMap.length)
@@ -100,7 +100,7 @@ namespace Scellecs.Morpeh.Workaround
             fixed (int* capacityMinusOnePtr = &hashMap.capacityMinusOne)
             fixed (int* lastIndexPtr = &hashMap.lastIndex)
             fixed (int* freeIndexPtr = &hashMap.freeIndex)
-            fixed (void* dataPtr = &hashMap.data[0])
+            fixed (void* dataPtr = &stash.data[0])
             {
                 nativeIntHashMap.lengthPtr = lengthPtr;
                 nativeIntHashMap.capacityPtr = capacityPtr;

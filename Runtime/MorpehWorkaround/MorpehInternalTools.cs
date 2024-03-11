@@ -74,13 +74,6 @@ namespace Scellecs.Morpeh.Workaround
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetLength<T>(this Stash<T> stash) where T : struct, IComponent
-        {
-            stash.world.ThreadSafetyCheck();
-            return stash.components.length;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Entity GetEntity(World world, in EntityId entityId)
         {
             world.ThreadSafetyCheck();
@@ -89,89 +82,7 @@ namespace Scellecs.Morpeh.Workaround
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static World GetWorldFromEntity(Entity entity) => entity.world;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RemoveAllExceptCleanupComponents(Entity entity)
-        {
-            entity.world.ThreadSafetyCheck();
-
-            Span<long> ids = stackalloc long[entity.components.count];
-            Span<long> cleanupIds = stackalloc long[entity.components.count];
-            int idsCount = 0;
-            int cleanupIdsCount = 0;
-
-            if (entity.currentArchetypeLength > 0)
-            {
-                foreach (var offset in entity.components)
-                {
-                    var typeDefinition = CommonTypeIdentifier.offsetTypeAssociation[offset];
-
-                    if (CleanupComponentsHelper.IsCleanupComponent(ref typeDefinition))
-                    {
-                        cleanupIds[cleanupIdsCount++] = typeDefinition.id;
-                    }
-                    else
-                    {
-                        ids[idsCount++] = typeDefinition.id;
-                    }
-                }
-
-                for (int i = 0; i < idsCount; i++)
-                {
-                    var stash = Stash.stashes.data[entity.world.stashes.GetValueByKey(ids[i])];
-                    stash.Clean(entity);
-                }
-            }
-
-            if (cleanupIdsCount > 0)
-            {
-                if (entity.previousArchetypeLength == 0)
-                {
-                    entity.previousArchetype = entity.currentArchetype;
-                    entity.previousArchetypeLength = entity.currentArchetypeLength;
-                }
-
-                entity.currentArchetype = 0;
-                entity.currentArchetypeLength = 0;
-                entity.components.Clear();
-
-                for (int i = 0; i < cleanupIdsCount; i++)
-                {
-                    var stash = Stash.stashes.data[entity.world.stashes.GetValueByKey(cleanupIds[i])];
-                    entity.currentArchetype ^= stash.typeId;
-                    entity.currentArchetypeLength++;
-                    entity.components.Set(stash.offset);
-                }
-
-                entity.world.dirtyEntities.Set(entity.entityId.id);
-                entity.isDirty = true;
-            }
-            else
-            {
-                if (entity.previousArchetypeLength > 0)
-                {
-                    entity.world.archetypes.GetValueByKey(entity.previousArchetype)?.Remove(entity);
-                }
-                else
-                {
-                    entity.world.archetypes.GetValueByKey(entity.currentArchetype)?.Remove(entity);
-                }
-
-                entity.world.ApplyRemoveEntity(entity.entityId.id);
-                entity.world.dirtyEntities.Unset(entity.entityId.id);
-                entity.DisposeFast();
-            }
-        }
-
-        public static void WarmupCleanupComponents() => CleanupComponentsHelper.Load();
 #if MORPEH_BURST
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeUnmanagedStash<TUnmanaged> ReinterpretDangerous<TUnmanaged>(this Stash stash) where TUnmanaged : unmanaged
-        {
-            var helper = InternalHelperTypeAssociation.Get(stash.typeId);
-            return helper.CreateUnmanagedStash<TUnmanaged>(stash.world);
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, Type componentType) where TUnmanaged : unmanaged
         {

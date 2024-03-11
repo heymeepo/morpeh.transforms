@@ -1,5 +1,4 @@
 ﻿#if MORPEH_BURST
-using System.Runtime.CompilerServices;
 using Unity.Collections;
 
 namespace Scellecs.Morpeh.Workaround.WorldAllocator
@@ -12,7 +11,6 @@ namespace Scellecs.Morpeh.Workaround.WorldAllocator
 
         public void OnAwake() => worldAllocator = World.UpdateAllocator().rwdAllocator;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void OnUpdate(float deltaTime) => worldAllocator->Update();
 
         public void Dispose() { }
