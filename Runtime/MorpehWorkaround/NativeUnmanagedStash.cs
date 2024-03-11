@@ -1,7 +1,7 @@
 ﻿#if MORPEH_BURST
 using Scellecs.Morpeh.Native;
 
-namespace Prototypes.Core.ECS.MorpehWorkaround
+namespace Scellecs.Morpeh.Workaround
 {
     public struct NativeUnmanagedStash<T> where T : unmanaged
     {

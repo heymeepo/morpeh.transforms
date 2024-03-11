@@ -4,7 +4,7 @@ using Scellecs.Morpeh.Native;
 #endif
 using System.Runtime.CompilerServices;
 
-namespace Prototypes.Core.ECS.MorpehWorkaround
+namespace Scellecs.Morpeh.Workaround
 {
     public static class MorpehCollectionsExtensions
     {
