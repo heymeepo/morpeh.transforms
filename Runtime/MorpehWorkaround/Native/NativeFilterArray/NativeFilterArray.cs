@@ -25,10 +25,10 @@ namespace Scellecs.Morpeh.Workaround
         public readonly int length;
 
         [ReadOnly, NativeDisableUnsafePtrRestriction]
-        private int* entities;
+        public int* entities;
 
         [ReadOnly]
-        private NativeWorld world;
+        public NativeWorld world;
 
         internal NativeFilterArray(JobHandle buildCompletionHandle, NativeWorld world, int length, int* entities)
         {
