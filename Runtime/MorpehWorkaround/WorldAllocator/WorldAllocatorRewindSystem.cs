@@ -9,7 +9,7 @@ namespace Scellecs.Morpeh.Workaround.WorldAllocator
 
         private DoubleRewindableAllocators* worldAllocator;
 
-        public void OnAwake() => worldAllocator = World.UpdateAllocator().rwdAllocator;
+        public void OnAwake() => worldAllocator = World.GetUpdateAllocator().rwdAllocator;
 
         public void OnUpdate(float deltaTime) => worldAllocator->Update();
 

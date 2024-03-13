@@ -8,7 +8,7 @@ namespace Scellecs.Morpeh.Workaround.WorldAllocator
     public static unsafe class WorldAllocatorExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static WorldUpdateAllocator UpdateAllocator(this World world) => WorldAllocatorPlugin.rwdAllocators[world.identifier];
+        public static WorldUpdateAllocator GetUpdateAllocator(this World world) => WorldAllocatorPlugin.rwdAllocators[world.identifier];
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void* Allocate(this WorldUpdateAllocator allocator, int sizeOf, int alignOf, int itemsCount, NativeArrayOptions options)
