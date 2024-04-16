@@ -60,14 +60,14 @@ namespace Scellecs.Morpeh.Workaround
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static long GetTypeOffset(Type componentType)
+        public static long GetTypeOffset(Type componentType)
         {
             var helper = InternalHelperTypeAssociation.Get(componentType);
             return helper.GetTypeInfo().offset;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static long GetTypeOffset(long typeId)
+        public static long GetTypeOffset(long typeId)
         {
             var helper = InternalHelperTypeAssociation.Get(typeId);
             return helper.GetTypeInfo().offset;
