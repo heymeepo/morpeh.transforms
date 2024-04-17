@@ -5,6 +5,8 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
+using static UnityEngine.EventSystems.EventTrigger;
+
 #if MORPEH_ELYSIUM
 using Scellecs.Morpeh.Elysium;
 #endif
@@ -74,7 +76,7 @@ namespace Scellecs.Morpeh.Transforms
                 return;
             }
 
-            var childEntities = new NativeQueue<EntityId>(Allocator.TempJob);
+            var childEntities = new NativeQueue<Entity>(Allocator.TempJob);
             var parentsFilter = deletedParentsFilter.AsNative();
 
             new GatherChildEntitiesJob()
@@ -86,13 +88,10 @@ namespace Scellecs.Morpeh.Transforms
             }
             .ScheduleParallel(parentsFilter.length, 32, default).Complete();
 
-            while (childEntities.TryDequeue(out var childId))
+            while (childEntities.TryDequeue(out var childEnt))
             {
-                if (World.TryGetEntity(childId, out var childEnt))
-                {
-                    parentStash.Remove(childEnt);
-                    previousParentStash.Remove(childEnt);
-                }
+                parentStash.Remove(childEnt);
+                previousParentStash.Remove(childEnt);
             }
 
             childEntities.Dispose(default).Complete();
@@ -111,11 +110,7 @@ namespace Scellecs.Morpeh.Transforms
             {
                 ref var prevParent = ref previousParentStash.Get(childEntity);
 
-                if (World.TryGetEntity(prevParent.Value, out var parentEntity))
-                {
-                    RemoveChildFromParent(childEntity, parentEntity);
-                }
-
+                RemoveChildFromParent(childEntity, prevParent.Value);
                 previousParentStash.Remove(childEntity);
             }
 
@@ -137,11 +132,11 @@ namespace Scellecs.Morpeh.Transforms
                 }
             }
 
-            int FindChildIndex(NativeList<EntityId> children, Entity entity)
+            int FindChildIndex(NativeList<Entity> children, Entity entity)
             {
                 for (int i = 0; i < children.Length; i++)
                 {
-                    if (children[i] == entity.ID)
+                    if (children[i] == entity)
                         return i;
                 }
 
@@ -153,7 +148,7 @@ namespace Scellecs.Morpeh.Transforms
         {
             foreach (var entity in newParentsFilter)
             {
-                previousParentStash.Set(entity, new PreviousParent() { Value = EntityId.Invalid });
+                previousParentStash.Set(entity, new PreviousParent() { Value = default });
             }
 
             World.Commit();
@@ -169,10 +164,10 @@ namespace Scellecs.Morpeh.Transforms
             var parentsFilterNative = existingParentsFilter.AsNative();
             var count = parentsFilterNative.length * 2;
 
-            var parentChildrenToRemove = new NativeParallelMultiHashMap<EntityId, EntityId>(count, Allocator.TempJob);
-            var parentChildrenToAdd = new NativeParallelMultiHashMap<EntityId, EntityId>(count, Allocator.TempJob);
-            var uniqueParents = new NativeParallelHashMap<EntityId, int>(count, Allocator.TempJob);
-            var childParentToRemove = new NativeParallelHashSet<EntityId>(count, Allocator.TempJob);
+            var parentChildrenToRemove = new NativeParallelMultiHashMap<Entity, Entity>(count, Allocator.TempJob);
+            var parentChildrenToAdd = new NativeParallelMultiHashMap<Entity, Entity>(count, Allocator.TempJob);
+            var uniqueParents = new NativeParallelHashMap<Entity, int>(count, Allocator.TempJob);
+            var childParentToRemove = new NativeParallelHashSet<Entity>(count, Allocator.TempJob);
 
             var gatherChangedParentsJobHandle = new GatherChangedParentsJob
             {
@@ -189,17 +184,14 @@ namespace Scellecs.Morpeh.Transforms
             .ScheduleParallel(parentsFilterNative.length, 16, default);
             gatherChangedParentsJobHandle.Complete();
 
-            foreach (var entityId in childParentToRemove)
+            foreach (var entity in childParentToRemove)
             {
-                if (World.TryGetEntity(entityId, out var entity))
-                {
-                    parentStash.Remove(entity);
-                }
+                parentStash.Remove(entity);
             }
 
             World.Commit();
 
-            var parentsMissingChild = new NativeList<EntityId>(Allocator.TempJob);
+            var parentsMissingChild = new NativeList<Entity>(Allocator.TempJob);
 
             var parentsMissingChildHandle = new FindMissingChildJob()
             {
@@ -212,10 +204,7 @@ namespace Scellecs.Morpeh.Transforms
 
             for (int i = 0; i < parentsMissingChild.Length; i++)
             {
-                if (World.TryGetEntity(parentsMissingChild[i], out var missingChildEntity))
-                {
-                    childStash.Set(missingChildEntity, new Child() { Value = new NativeList<EntityId>(Allocator.Persistent) });
-                }
+                childStash.Set(parentsMissingChild[i], new Child() { Value = new NativeList<Entity>(Allocator.Persistent) });
             }
 
             World.Commit();
@@ -231,16 +220,13 @@ namespace Scellecs.Morpeh.Transforms
 
             var parents = uniqueParents.GetKeyArray(Allocator.Temp);
 
-            foreach (var parentEntityId in parents)
+            foreach (var parentEntity in parents)
             {
-                if (World.TryGetEntity(parentEntityId, out var parentEntity))
-                {
-                    var children = childStash.Get(parentEntity);
+                var children = childStash.Get(parentEntity);
 
-                    if (children.Value.Length == 0)
-                    {
-                        childStash.Remove(parentEntity);
-                    }
+                if (children.Value.Length == 0)
+                {
+                    childStash.Remove(parentEntity);
                 }
             }
 
@@ -265,7 +251,7 @@ namespace Scellecs.Morpeh.Transforms
         [ReadOnly] public NativeFilter parentsFilter;
         [ReadOnly] public NativeStash<Child> childStash;
         [ReadOnly] public NativeStash<Parent> parentsStash;
-        [WriteOnly] public NativeQueue<EntityId>.ParallelWriter children;
+        [WriteOnly] public NativeQueue<Entity>.ParallelWriter children;
 
         public void Execute(int index)
         {
@@ -290,9 +276,9 @@ namespace Scellecs.Morpeh.Transforms
     {
         public NativeStash<Child> childStash;
 
-        [ReadOnly] public NativeParallelMultiHashMap<EntityId, EntityId> parentChildrenToAdd;
-        [ReadOnly] public NativeParallelMultiHashMap<EntityId, EntityId> parentChildrenToRemove;
-        [ReadOnly] public NativeParallelHashMap<EntityId, int> uniqueParents;
+        [ReadOnly] public NativeParallelMultiHashMap<Entity, Entity> parentChildrenToAdd;
+        [ReadOnly] public NativeParallelMultiHashMap<Entity, Entity> parentChildrenToRemove;
+        [ReadOnly] public NativeParallelHashMap<Entity, int> uniqueParents;
 
         public void Execute()
         {
@@ -311,7 +297,7 @@ namespace Scellecs.Morpeh.Transforms
             }
         }
 
-        void AddChildrenToParent(EntityId parent, ref NativeList<EntityId> children)
+        void AddChildrenToParent(Entity parent, ref NativeList<Entity> children)
         {
             if (parentChildrenToAdd.TryGetFirstValue(parent, out var child, out var it))
             {
@@ -323,7 +309,7 @@ namespace Scellecs.Morpeh.Transforms
             }
         }
 
-        void RemoveChildrenFromParent(EntityId parent, ref NativeList<EntityId> children)
+        void RemoveChildrenFromParent(Entity parent, ref NativeList<Entity> children)
         {
             if (parentChildrenToRemove.TryGetFirstValue(parent, out var child, out var it))
             {
@@ -336,7 +322,7 @@ namespace Scellecs.Morpeh.Transforms
             }
         }
 
-        int FindChildIndex(ref NativeList<EntityId> children, EntityId entity)
+        int FindChildIndex(ref NativeList<Entity> children, Entity entity)
         {
             for (int i = 0; i < children.Length; i++)
             {
@@ -359,8 +345,8 @@ namespace Scellecs.Morpeh.Transforms
     internal struct FindMissingChildJob : IJob
     {
         public NativeStash<Child> childStash;
-        public NativeParallelHashMap<EntityId, int> uniqueParents;
-        public NativeList<EntityId> parentsMissingChild;
+        public NativeParallelHashMap<Entity, int> uniqueParents;
+        public NativeList<Entity> parentsMissingChild;
 
         public void Execute()
         {
@@ -387,10 +373,10 @@ namespace Scellecs.Morpeh.Transforms
         public NativeStash<PreviousParent> previousParentStash;
         public NativeStash<Child> childStash;
 
-        public NativeParallelMultiHashMap<EntityId, EntityId>.ParallelWriter parentChildrenToAdd;
-        public NativeParallelMultiHashMap<EntityId, EntityId>.ParallelWriter parentChildrenToRemove;
-        public NativeParallelHashSet<EntityId>.ParallelWriter childParentToRemove;
-        public NativeParallelHashMap<EntityId, int>.ParallelWriter uniqueParents;
+        public NativeParallelMultiHashMap<Entity, Entity>.ParallelWriter parentChildrenToAdd;
+        public NativeParallelMultiHashMap<Entity, Entity>.ParallelWriter parentChildrenToRemove;
+        public NativeParallelHashSet<Entity>.ParallelWriter childParentToRemove;
+        public NativeParallelHashMap<Entity, int>.ParallelWriter uniqueParents;
 
         public void Execute(int index)
         {

@@ -1,5 +1,4 @@
-﻿using Scellecs.Morpeh.Collections;
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 
 namespace Scellecs.Morpeh.Workaround
@@ -39,9 +38,9 @@ namespace Scellecs.Morpeh.Workaround
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RemoveComponentByTypeId(this Entity entity, long typeId)
+        public static void RemoveComponentByTypeId(this Entity entity, int id)
         {
-            var helper = InternalHelperTypeAssociation.Get(typeId);
+            var helper = InternalHelperTypeAssociation.Get(id);
             helper.RemoveComponentBoxed(entity);
         }
 
@@ -53,35 +52,32 @@ namespace Scellecs.Morpeh.Workaround
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long GetTypeId(Type componentType)
+        public static int GetTypeId(Type componentType)
         {
             var helper = InternalHelperTypeAssociation.Get(componentType);
             return helper.GetTypeInfo().id;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long GetTypeOffset(Type componentType)
+        internal static TypeInfo GetTypeInfo(Type componentType)
         {
             var helper = InternalHelperTypeAssociation.Get(componentType);
-            return helper.GetTypeInfo().offset;
+            return helper.GetTypeInfo();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long GetTypeOffset(long typeId)
+        internal static TypeInfo GetTypeInfo(int id)
         {
-            var helper = InternalHelperTypeAssociation.Get(typeId);
-            return helper.GetTypeInfo().offset;
+            var helper = InternalHelperTypeAssociation.Get(id);
+            return helper.GetTypeInfo();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Entity GetEntity(World world, in EntityId entityId)
+        internal static Type GetComponentType(int id)
         {
-            world.ThreadSafetyCheck();
-            return world.entities[entityId.id];
+            var helper = InternalHelperTypeAssociation.Get(id);
+            return helper.GetComponentType();
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static World GetWorldFromEntity(Entity entity) => entity.world;
 #if MORPEH_BURST
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, Type componentType) where TUnmanaged : unmanaged
@@ -91,9 +87,9 @@ namespace Scellecs.Morpeh.Workaround
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, long typeId) where TUnmanaged : unmanaged
+        public static NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, int id) where TUnmanaged : unmanaged
         {
-            var helper = InternalHelperTypeAssociation.Get(typeId);
+            var helper = InternalHelperTypeAssociation.Get(id);
             return helper.CreateUnmanagedStash<TUnmanaged>(world);
         }
 #endif

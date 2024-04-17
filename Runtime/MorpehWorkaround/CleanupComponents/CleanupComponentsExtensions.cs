@@ -9,78 +9,58 @@ namespace Scellecs.Morpeh.Workaround
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RemoveAllExceptCleanupComponents(Entity entity)
         {
-            entity.world.ThreadSafetyCheck();
+#pragma warning disable 0618
+            var world = entity.GetWorld();
+#pragma warning restore 0618
+            world.ThreadSafetyCheck();
 
-            Span<long> ids = stackalloc long[entity.components.count];
-            Span<long> cleanupIds = stackalloc long[entity.components.count];
-            Span<int> cleanupOffsets = stackalloc int[entity.components.count];
-            int idsCount = 0;
-            int cleanupIdsCount = 0;
-
-            if (entity.currentArchetypeLength > 0)
+            if (world.IsDisposed(entity))
             {
-                foreach (var offset in entity.components)
-                {
-                    var typeDefinition = CommonTypeIdentifier.offsetTypeAssociation[offset];
+#if MORPEH_DEBUG
+                MLogger.LogError($"You're trying to dispose disposed entity {entity}.");
+#endif
+                return;
+            }
 
-                    if (CleanupComponentsHelper.IsCleanupComponent(ref typeDefinition))
-                    {
-                        cleanupIds[cleanupIdsCount] = typeDefinition.id;
-                        cleanupOffsets[cleanupIdsCount] = typeDefinition.offset;
-                        cleanupIdsCount++;
-                    }
-                    else
-                    {
-                        ids[idsCount++] = typeDefinition.id;
-                    }
-                }
+            ref var entityData = ref world.entities[entity.Id];
 
-                for (int i = 0; i < idsCount; i++)
+            int totalComponentsCount = entityData.currentArchetype.components.length + entityData.addedComponentsCount;
+            Span<int> idsToRemove = stackalloc int[totalComponentsCount];
+            int counter = 0;
+
+            if (entityData.currentArchetype != null)
+            {
+                foreach (var typeId in entityData.currentArchetype.components)
                 {
-                    var stash = entity.world.stashes.GetValueByKey(cleanupIds[i]);
-                    stash.Clean(entity);
+                    if (CleanupComponentsHelper.IsCleanupComponent(typeId) == false)
+                    {
+                        idsToRemove[counter++] = typeId;
+                    }
                 }
             }
 
-            if (cleanupIdsCount > 0)
+            for (var i = 0; i < entityData.addedComponentsCount; i++)
             {
-                if (entity.previousArchetypeLength == 0)
+                var typeId = entityData.addedComponents[i];
+
+                if (CleanupComponentsHelper.IsCleanupComponent(typeId) == false)
                 {
-                    entity.previousArchetype = entity.currentArchetype;
-                    entity.previousArchetypeLength = entity.currentArchetypeLength;
+                    idsToRemove[counter++] = typeId;
                 }
+            }
 
-                entity.currentArchetype = 0;
-                entity.currentArchetypeLength = 0;
-                entity.components.Clear();
-
-                for (int i = 0; i < cleanupIdsCount; i++)
+            if (counter != totalComponentsCount)
+            {
+                for (var i = 0; i < counter; i++)
                 {
-                    entity.currentArchetype ^= cleanupIds[i];
-                    entity.currentArchetypeLength++;
-                    entity.components.Set(cleanupOffsets[i]);
+                    var typeId = idsToRemove[i];
+                    world.GetExistingStash(typeId)?.Remove(entity);
                 }
-
-                entity.world.dirtyEntities.Set(entity.entityId.id);
-                entity.isDirty = true;
             }
             else
             {
-                if (entity.previousArchetypeLength > 0)
-                {
-                    entity.world.archetypes.GetValueByKey(entity.previousArchetype)?.Remove(entity);
-                }
-                else
-                {
-                    entity.world.archetypes.GetValueByKey(entity.currentArchetype)?.Remove(entity);
-                }
-
-                entity.world.ApplyRemoveEntity(entity.entityId.id);
-                entity.world.dirtyEntities.Unset(entity.entityId.id);
-                entity.DisposeFast();
+                world.RemoveEntity(entity);
             }
         }
-
-        public static void WarmupCleanupComponents() => CleanupComponentsHelper.Load();
     }
 }

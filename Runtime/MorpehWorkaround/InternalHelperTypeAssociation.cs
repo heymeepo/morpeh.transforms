@@ -13,7 +13,7 @@ namespace Scellecs.Morpeh.Workaround
     internal static class InternalHelperTypeAssociation
     {
         private static Dictionary<Type, InternalAPIHelper> typeAssociation = new Dictionary<Type, InternalAPIHelper>();
-        private static Dictionary<long, InternalAPIHelper> idTypeAssociation = new Dictionary<long, InternalAPIHelper>();
+        private static Dictionary<int, InternalAPIHelper> idTypeAssociation = new Dictionary<int, InternalAPIHelper>();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static InternalAPIHelper Get(Type type)
@@ -33,11 +33,15 @@ namespace Scellecs.Morpeh.Workaround
             return typeAssociation[type];
         }
 
-        internal static InternalAPIHelper Get(long typeId)
+        internal static InternalAPIHelper Get(int id)
         {
-            if (idTypeAssociation.TryGetValue(typeId, out var helper))
+            if (idTypeAssociation.TryGetValue(id, out var helper))
             {
                 return helper;
+            }
+            else if(ExtendedComponentId.typeIdAssociation.TryGetValue(id, out var typeDefinition))
+            {
+                return Get(typeDefinition.type);
             }
 
             throw new ArgumentException("Invalid TypeId!");
@@ -46,8 +50,8 @@ namespace Scellecs.Morpeh.Workaround
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void Set<T>(InternalAPIHelper<T> helper) where T : unmanaged, IComponent
         {
-            TypeIdentifier<T>.Warmup();
-            var info = TypeIdentifier<T>.info;
+            ComponentId<T>.Warmup();
+            var info = ComponentId<T>.info;
             typeAssociation.Add(typeof(T), helper);
             idTypeAssociation.Add(info.id, helper);
         }
@@ -62,7 +66,9 @@ namespace Scellecs.Morpeh.Workaround
 
     internal abstract class InternalAPIHelper
     {
-        internal abstract CommonTypeIdentifier.TypeInfo GetTypeInfo();
+        internal abstract Type GetComponentType();
+
+        internal abstract TypeInfo GetTypeInfo();
 
         internal abstract void SetComponentBoxed(Entity entity, object component);
 
@@ -80,13 +86,19 @@ namespace Scellecs.Morpeh.Workaround
         private static void Warmup() => InternalHelperTypeAssociation.Set(new InternalAPIHelper<T>());
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal override CommonTypeIdentifier.TypeInfo GetTypeInfo() => TypeIdentifier<T>.info;
+        internal override Type GetComponentType() => typeof(T);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal override void SetComponentBoxed(Entity entity, object component) => entity.world.GetStash<T>().Set(entity, (T)component);
+        internal override TypeInfo GetTypeInfo() => ComponentId<T>.info;
+
+#pragma warning disable 0618
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal override void SetComponentBoxed(Entity entity, object component) => entity.GetWorld().GetStash<T>().Set(entity, (T)component);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal override void RemoveComponentBoxed(Entity entity) => entity.world.GetStash<T>().Remove(entity);
+        internal override void RemoveComponentBoxed(Entity entity) => entity.GetWorld().GetStash<T>().Remove(entity);
+#pragma warning restore 0618
+
 #if MORPEH_BURST
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal unsafe override NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStash<TUnmanaged>(World world)

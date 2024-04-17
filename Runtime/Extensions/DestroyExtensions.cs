@@ -7,24 +7,21 @@ namespace Scellecs.Morpeh.Transforms
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Destroy(this Entity entity) => CleanupComponentsExtensions.RemoveAllExceptCleanupComponents(entity);
-
+#pragma warning disable 0618
         public static void DestroyHierarchy(this Entity entity)
         {
             if (entity.Has<Child>())
             {
                 var children = entity.GetComponent<Child>();
-                var world = MorpehInternalTools.GetWorldFromEntity(entity);
 
                 for (int i = 0; i < children.Value.Length; i++)
                 {
-                    if (world.TryGetEntity(children.Value[i], out var child))
-                    {
-                        DestroyHierarchy(child);
-                    }
+                    DestroyHierarchy(children.Value[i]);
                 }
             }
 
             entity.Destroy();
         }
+#pragma warning restore 0618
     }
 }

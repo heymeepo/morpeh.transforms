@@ -16,6 +16,6 @@ namespace Scellecs.Morpeh.Transforms
         /// <summary>
         /// The previous parent entity
         /// </summary>
-        public EntityId Value;
+        public Entity Value;
     }
 }

@@ -124,7 +124,7 @@ namespace Scellecs.Morpeh.Transforms
             }
         }
 
-        private void ChildLocalToWorldFromTransformMatrix(in float4x4 parentLocalToWorld, EntityId childEntity)
+        private void ChildLocalToWorldFromTransformMatrix(in float4x4 parentLocalToWorld, Entity childEntity)
         {
             ref var localToWorld = ref localToWorldStash.Get(childEntity, out bool hasLocalToWorld);
             var localTransform = localTransformStash.Get(childEntity, out bool hasLocalTransform);

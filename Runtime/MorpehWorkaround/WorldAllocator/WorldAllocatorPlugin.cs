@@ -14,7 +14,7 @@ namespace Scellecs.Morpeh.Workaround.WorldAllocator
         public static void RuntimeInitialize()
         {
             rwdAllocators = new Dictionary<int, WorldUpdateAllocator>();
-            WorldExtensions.AddWorldPlugin(new WorldAllocatorPlugin());
+            WorldPluginsExtensions.AddWorldPlugin(new WorldAllocatorPlugin());
         }
 
         public void Initialize(World world)

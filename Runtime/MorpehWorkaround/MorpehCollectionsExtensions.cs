@@ -61,32 +61,5 @@ namespace Scellecs.Morpeh.Workaround
             index = -1;
             return false;
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RemoveChecked(this IntFastList list, int value)
-        {
-            if (list.length > 0)
-            {
-                int index = list.IndexOf(value);
-
-                if (index >= 0)
-                {
-                    list.RemoveAt(index);
-                }
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RemoveSwapBackChecked(this IntFastList list, int value)
-        {
-            for (int i = 0; i < list.length; i++)
-            {
-                if (list.data.ptr[i] == value)
-                {
-                    list.RemoveAtSwap(i, out _);
-                    return;
-                }
-            }
-        }
     }
 }

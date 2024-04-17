@@ -21,7 +21,7 @@ namespace Scellecs.Morpeh.Transforms
         /// <summary>
         /// A child entity
         /// </summary>
-        [NativeDisableContainerSafetyRestriction] public NativeList<EntityId> Value;
+        [NativeDisableContainerSafetyRestriction] public NativeList<Entity> Value;
 
         public void Dispose()
         {

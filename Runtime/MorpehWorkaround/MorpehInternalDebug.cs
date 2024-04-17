@@ -17,7 +17,5 @@ namespace Scellecs.Morpeh.Workaround
 
             return -1;
         }
-
-        public static int ArchetypesCount(Filter filter) => filter.archetypes.length;
     }
 }

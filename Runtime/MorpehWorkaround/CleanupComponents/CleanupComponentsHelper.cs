@@ -1,9 +1,6 @@
-﻿using Scellecs.Morpeh;
-using Scellecs.Morpeh.Collections;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
@@ -11,82 +8,70 @@ namespace Scellecs.Morpeh.Workaround
 {
     internal static class CleanupComponentsHelper
     {
-        private static HashSet<Type> cleanupTypes;
+        private const int CLEANUP_COMPONENT = 1;
+        private const int NON_CLEANUP_COMPONENT = -1;
+        private const int UNMAPPED = 0;
 
-        private static IntHashSet nonCleanupOffsets = new IntHashSet();
-        private static IntHashSet cleanupOffsets = new IntHashSet();
+        private static HashSet<Type> cleanupTypes;
+        private static int[] cleanupIds;
+
+        static CleanupComponentsHelper() => Load();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsCleanupComponent(ref CommonTypeIdentifier.InternalTypeDefinition definition)
+        internal static bool IsCleanupComponent(int id)
         {
-            var offset = definition.offset;
-
-            if (cleanupTypes == null)
+            if (id >= cleanupIds.Length)
             {
-                Load();
+                ResizeMap(id);
             }
 
-            if (nonCleanupOffsets.Has(offset))
+            var value = cleanupIds[id];
+
+            if (value == UNMAPPED)
             {
-                return false;
+                return MapStash(id) == CLEANUP_COMPONENT;
             }
 
-            if (cleanupOffsets.Has(offset))
-            {
-                return true;
-            }
-
-            if (cleanupTypes.Contains(definition.type))
-            {
-                cleanupOffsets.Add(offset);
-                return true;
-            }
-            else
-            {
-                nonCleanupOffsets.Add(offset);
-                return false;
-            }
+            return value == CLEANUP_COMPONENT;
         }
 
         internal static void Load()
         {
-            if (cleanupTypes == null) 
+            if (cleanupTypes == null)
             {
-                var types = GetAssemblies()
+                var types = ReflectionHelpers.GetAssemblies()
                     .SelectMany(assembly => assembly.GetTypes())
                     .Where(type => type.IsValueType && typeof(ICleanupComponent).IsAssignableFrom(type));
 
                 cleanupTypes = new HashSet<Type>(types);
-                cleanupOffsets = new IntHashSet();
-                nonCleanupOffsets = new IntHashSet();
+                cleanupIds = new int[WorldConstants.DEFAULT_STASHES_CAPACITY];
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int MapStash(int id)
+        {
+            var componentType = MorpehInternalTools.GetComponentType(id);
+            int result = cleanupTypes.Contains(componentType) ? CLEANUP_COMPONENT : NON_CLEANUP_COMPONENT;
+            cleanupIds[id] = result;
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ResizeMap(int byId)
+        {
+            var logBase2 = Math.Log(byId, 2);
+            int nextPower = (int)Math.Ceiling(logBase2);
+            int result = 1 << nextPower;
+
+            Array.Resize(ref cleanupIds, result);
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Cleanup()
         {
             cleanupTypes = null;
-            cleanupOffsets = null;
-            nonCleanupOffsets = null;
-        }
-
-        private static IEnumerable<Assembly> GetAssemblies()
-        {
-            return AppDomain
-                .CurrentDomain
-                .GetAssemblies()
-                .Where(a =>
-                !a.GlobalAssemblyCache &&
-                !a.FullName.StartsWith("mscorlib") &&
-                !a.FullName.StartsWith("netstandard") &&
-                !a.FullName.StartsWith("nunit") &&
-                !a.FullName.StartsWith("System") &&
-                !a.FullName.StartsWith("UnityEngine") &&
-                !a.FullName.StartsWith("UnityEditor") &&
-                !a.FullName.StartsWith("Unity") &&
-                !a.FullName.StartsWith("Mono") &&
-                !a.FullName.StartsWith("Bee") &&
-                !a.FullName.StartsWith("Newtonsoft"));
+            cleanupIds = null;
         }
     }
 }

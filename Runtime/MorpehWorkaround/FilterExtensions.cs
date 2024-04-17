@@ -2,14 +2,14 @@
 {
     public static class FilterExtensions
     {
-        public static FilterBuilder With(this FilterBuilder builder, long typeId)
+        public static FilterBuilder With(this FilterBuilder builder, int id)
         {
-            var offset = MorpehInternalTools.GetTypeOffset(typeId);
+            var info = MorpehInternalTools.GetTypeInfo(id);
             var current = builder;
 
             while (current.parent != null)
             {
-                if (current.mode == Filter.Mode.Include && current.offset == offset)
+                if (current.typeInfo.id == info.id && current.mode == Filter.Mode.Include)
                 {
                     return builder;
                 }
@@ -21,22 +21,21 @@
                 parent = builder,
                 world = builder.world,
                 mode = Filter.Mode.Include,
-                typeId = typeId,
-                offset = offset,
+                typeInfo = info,
                 level = builder.level + 1,
-                includeHash = builder.includeHash ^ typeId,
+                includeHash = builder.includeHash.Combine(info.hash),
                 excludeHash = builder.excludeHash
             };
         }
 
-        public static FilterBuilder Without(this FilterBuilder builder, long typeId)
+        public static FilterBuilder Without(this FilterBuilder builder, int id)
         {
-            var offset = MorpehInternalTools.GetTypeOffset(typeId);
+            var info = MorpehInternalTools.GetTypeInfo(id);
             var current = builder;
 
             while (current.parent != null)
             {
-                if (current.mode == Filter.Mode.Exclude && current.offset == offset)
+                if (current.typeInfo.id == info.id && current.mode == Filter.Mode.Exclude)
                 {
                     return builder;
                 }
@@ -48,10 +47,10 @@
                 parent = builder,
                 world = builder.world,
                 mode = Filter.Mode.Exclude,
-                typeId = typeId,
+                typeInfo = info,
                 level = builder.level + 1,
                 includeHash = builder.includeHash,
-                excludeHash = builder.excludeHash ^ typeId
+                excludeHash = builder.excludeHash.Combine(info.hash)
             };
         }
     }
