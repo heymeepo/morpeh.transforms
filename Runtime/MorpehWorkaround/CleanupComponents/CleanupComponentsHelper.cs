@@ -1,5 +1,4 @@
-﻿using Scellecs.Morpeh.Collections;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -16,26 +15,24 @@ namespace Scellecs.Morpeh.Workaround
         private static HashSet<Type> cleanupTypes;
         private static int[] cleanupIds;
 
-        static CleanupComponentsHelper() => Load();
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool IsCleanupComponent(int id)
+        internal static bool IsCleanupComponent(int typeId)
         {
-            if (cleanupTypes == null) 
+            if (cleanupTypes == null)
             {
                 Load();
             }
 
-            if (id >= cleanupIds.Length)
+            if (typeId >= cleanupIds.Length)
             {
-                ResizeMap(id);
+                ResizeMap(typeId);
             }
 
-            var value = cleanupIds[id];
+            var value = cleanupIds[typeId];
 
             if (value == UNMAPPED)
             {
-                return MapStash(id) == CLEANUP_COMPONENT;
+                return MapStash(typeId) == CLEANUP_COMPONENT;
             }
 
             return value == CLEANUP_COMPONENT;
@@ -43,23 +40,20 @@ namespace Scellecs.Morpeh.Workaround
 
         internal static void Load()
         {
-            if (cleanupTypes == null)
-            {
-                var types = ReflectionHelpers.GetAssemblies()
-                    .SelectMany(assembly => assembly.GetTypes())
-                    .Where(type => type.IsValueType && typeof(ICleanupComponent).IsAssignableFrom(type));
+            var types = ReflectionHelpers.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .Where(type => type.IsValueType && typeof(ICleanupComponent).IsAssignableFrom(type));
 
-                cleanupTypes = new HashSet<Type>(types);
-                cleanupIds = new int[WorldConstants.DEFAULT_STASHES_CAPACITY];
-            }
+            cleanupTypes = new HashSet<Type>(types);
+            cleanupIds = new int[WorldConstants.DEFAULT_STASHES_CAPACITY];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int MapStash(int id)
+        private static int MapStash(int typeId)
         {
-            var componentType = MorpehInternalTools.GetComponentType(id);
+            var componentType = MorpehInternalTools.GetComponentType(typeId);
             int result = cleanupTypes.Contains(componentType) ? CLEANUP_COMPONENT : NON_CLEANUP_COMPONENT;
-            cleanupIds[id] = result;
+            cleanupIds[typeId] = result;
             return result;
         }
 

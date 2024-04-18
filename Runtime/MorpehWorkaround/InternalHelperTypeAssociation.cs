@@ -33,13 +33,13 @@ namespace Scellecs.Morpeh.Workaround
             return typeAssociation[type];
         }
 
-        internal static InternalAPIHelper Get(int id)
+        internal static InternalAPIHelper Get(int typeId)
         {
-            if (idTypeAssociation.TryGetValue(id, out var helper))
+            if (idTypeAssociation.TryGetValue(typeId, out var helper))
             {
                 return helper;
             }
-            else if(ComponentId.TryGet(id, out var type))
+            else if(ComponentId.TryGet(typeId, out var type))
             {
                 return Get(type);
             }
@@ -96,7 +96,6 @@ namespace Scellecs.Morpeh.Workaround
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal override void RemoveComponentBoxed(Entity entity) => entity.GetWorld().GetStash<T>().Remove(entity);
-
 #if MORPEH_BURST
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal unsafe override NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStash<TUnmanaged>(World world)
