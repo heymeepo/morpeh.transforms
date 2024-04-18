@@ -91,13 +91,11 @@ namespace Scellecs.Morpeh.Workaround
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal override TypeInfo GetTypeInfo() => ComponentId<T>.info;
 
-#pragma warning disable 0618
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal override void SetComponentBoxed(Entity entity, object component) => entity.GetWorld().GetStash<T>().Set(entity, (T)component);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal override void RemoveComponentBoxed(Entity entity) => entity.GetWorld().GetStash<T>().Remove(entity);
-#pragma warning restore 0618
 
 #if MORPEH_BURST
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

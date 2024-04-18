@@ -21,6 +21,11 @@ namespace Scellecs.Morpeh.Workaround
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool IsCleanupComponent(int id)
         {
+            if (cleanupTypes == null) 
+            {
+                Load();
+            }
+
             if (id >= cleanupIds.Length)
             {
                 ResizeMap(id);
