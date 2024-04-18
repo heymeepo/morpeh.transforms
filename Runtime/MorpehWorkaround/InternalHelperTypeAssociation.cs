@@ -39,9 +39,9 @@ namespace Scellecs.Morpeh.Workaround
             {
                 return helper;
             }
-            else if(ExtendedComponentId.typeIdAssociation.TryGetValue(id, out var typeDefinition))
+            else if(ComponentId.TryGet(id, out var type))
             {
-                return Get(typeDefinition.type);
+                return Get(type);
             }
 
             throw new ArgumentException("Invalid TypeId!");
