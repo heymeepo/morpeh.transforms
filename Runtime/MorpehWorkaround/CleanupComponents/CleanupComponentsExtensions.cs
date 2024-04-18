@@ -9,9 +9,7 @@ namespace Scellecs.Morpeh.Workaround
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RemoveAllExceptCleanupComponents(Entity entity)
         {
-#pragma warning disable 0618
             var world = entity.GetWorld();
-#pragma warning restore 0618
             world.ThreadSafetyCheck();
 
             if (world.IsDisposed(entity))
