@@ -5,16 +5,11 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
-using static UnityEngine.EventSystems.EventTrigger;
-
-#if MORPEH_ELYSIUM
-using Scellecs.Morpeh.Elysium;
-#endif
 
 namespace Scellecs.Morpeh.Transforms
 {
 #if MORPEH_ELYSIUM
-    public sealed class ParentSystem : IUpdateSystem
+    public sealed class ParentSystem : Elysium.IUpdateSystem
 #else
     public sealed class ParentSystem : ISystem
 #endif

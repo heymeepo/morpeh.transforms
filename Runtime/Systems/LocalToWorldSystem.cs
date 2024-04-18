@@ -2,14 +2,11 @@
 using Unity.Burst;
 using Unity.Jobs;
 using Unity.Mathematics;
-#if MORPEH_ELYSIUM
-using Scellecs.Morpeh.Elysium;
-#endif
 
 namespace Scellecs.Morpeh.Transforms
 {
 #if MORPEH_ELYSIUM
-    public sealed class LocalToWorldSystem : IUpdateSystem
+    public sealed class LocalToWorldSystem : Elysium.IUpdateSystem
 #else
     public sealed class LocalToWorldSystem : ISystem
 #endif
