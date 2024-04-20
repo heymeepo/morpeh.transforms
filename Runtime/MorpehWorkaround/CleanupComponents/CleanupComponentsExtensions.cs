@@ -1,5 +1,4 @@
-﻿using Scellecs.Morpeh.Collections;
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 
 namespace Scellecs.Morpeh.Workaround
@@ -36,8 +35,8 @@ namespace Scellecs.Morpeh.Workaround
                     }
                 }
             }
-
-            for (var i = 0; i < entityData.addedComponentsCount; i++)
+            
+            for (int i = 0; i < entityData.addedComponentsCount; i++)
             {
                 var typeId = entityData.addedComponents[i];
 
@@ -49,7 +48,7 @@ namespace Scellecs.Morpeh.Workaround
 
             if (counter != totalComponentsCount)
             {
-                for (var i = 0; i < counter; i++)
+                for (int i = 0; i < counter; i++)
                 {
                     var typeId = idsToRemove[i];
                     world.GetExistingStash(typeId)?.Remove(entity);

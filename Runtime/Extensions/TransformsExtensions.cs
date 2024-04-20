@@ -2,7 +2,7 @@
 {
     public static class TransformsExtensions
     {
-#pragma warning disable 0618
+#pragma warning disable 0618 //TODO: Transfer to Aspect
         public static void SetParent(this Entity entity, Entity parent) 
         { 
             if (parent.IsNullOrDisposed()) 

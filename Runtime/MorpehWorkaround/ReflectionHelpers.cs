@@ -3,11 +3,11 @@ using System;
 using System.Reflection;
 using System.Linq;
 
-namespace Scellecs.Morpeh.Workaround
+namespace Scellecs.Morpeh.Workaround.Utility
 {
-    internal static class ReflectionHelpers
+    public static class ReflectionHelpers
     {
-        internal static IEnumerable<Assembly> GetAssemblies()
+        public static IEnumerable<Assembly> GetAssemblies()
         {
             return AppDomain
                 .CurrentDomain
@@ -24,6 +24,18 @@ namespace Scellecs.Morpeh.Workaround
                 !a.FullName.StartsWith("Mono") &&
                 !a.FullName.StartsWith("Bee") &&
                 !a.FullName.StartsWith("Newtonsoft"));
+        }
+
+        public static IEnumerable<Type> GetTypesWithAttribute<T>(this IEnumerable<Assembly> assemblies) where T : Attribute
+        {
+            return assemblies
+                .SelectMany(a => a.GetTypes())
+                .Where(t => t.GetCustomAttributes(typeof(T), true).Length > 0);
+        }
+
+        public static T GetAttribute<T>(this Type type, bool inherit = false) where T : Attribute
+        {
+            return type.GetCustomAttributes(typeof(T), inherit).FirstOrDefault() as T;
         }
     }
 }
