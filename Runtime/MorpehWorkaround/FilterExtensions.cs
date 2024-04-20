@@ -2,9 +2,9 @@
 {
     public static class FilterExtensions
     {
-        public static FilterBuilder With(this FilterBuilder builder, int id)
+        public static FilterBuilder With(this FilterBuilder builder, int typeId)
         {
-            var info = MorpehInternalTools.GetTypeInfo(id);
+            var info = MorpehInternalTools.GetTypeInfo(typeId);
             var current = builder;
 
             while (current.parent != null)
@@ -28,9 +28,9 @@
             };
         }
 
-        public static FilterBuilder Without(this FilterBuilder builder, int id)
+        public static FilterBuilder Without(this FilterBuilder builder, int typeId)
         {
-            var info = MorpehInternalTools.GetTypeInfo(id);
+            var info = MorpehInternalTools.GetTypeInfo(typeId);
             var current = builder;
 
             while (current.parent != null)

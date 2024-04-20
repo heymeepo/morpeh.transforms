@@ -66,6 +66,13 @@ namespace Scellecs.Morpeh.Workaround
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long GetTypeHash(Type componentType)
+        {
+            var helper = InternalHelperTypeAssociation.Get(componentType);
+            return helper.GetTypeInfo().hash.GetValue();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static TypeInfo GetTypeInfo(Type componentType)
         {
             var helper = InternalHelperTypeAssociation.Get(componentType);
