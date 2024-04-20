@@ -4,10 +4,10 @@ using System.Runtime.CompilerServices;
 
 namespace Scellecs.Morpeh.Workaround
 {
-    public static class NativeUnmanagedStashExtensions
+    public static class UnmanagedStashExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ref T Get<T>(this ref NativeUnmanagedStash<T> stash, in Entity entity) where T : unmanaged
+        public static ref T Get<T>(this ref UnmanagedStash<T> stash, in Entity entity) where T : unmanaged
         {
             return ref stash.reinterpretedComponents.GetValueRefByKey(entity.Id);
         }

@@ -74,7 +74,7 @@ namespace Scellecs.Morpeh.Workaround
 
         internal abstract void RemoveComponentBoxed(Entity entity);
 #if MORPEH_BURST
-        internal abstract NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStash<TUnmanaged>(World world) where TUnmanaged : unmanaged;
+        internal abstract UnmanagedStash<TUnmanaged> CreateUnmanagedStash<TUnmanaged>(World world) where TUnmanaged : unmanaged;
 #endif
     }
 
@@ -98,7 +98,7 @@ namespace Scellecs.Morpeh.Workaround
         internal override void RemoveComponentBoxed(Entity entity) => entity.GetWorld().GetStash<T>().Remove(entity);
 #if MORPEH_BURST
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal unsafe override NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStash<TUnmanaged>(World world)
+        internal unsafe override UnmanagedStash<TUnmanaged> CreateUnmanagedStash<TUnmanaged>(World world)
         {
             var stash = world.GetStash<T>();
             var hashMap = stash.map;
@@ -121,7 +121,7 @@ namespace Scellecs.Morpeh.Workaround
                 nativeIntHashMap.slots = hashMap.slots.ptr;
             }
 
-            return new NativeUnmanagedStash<TUnmanaged>()
+            return new UnmanagedStash<TUnmanaged>()
             {
                 reinterpretedComponents = nativeIntHashMap,
                 world = world.AsNative()

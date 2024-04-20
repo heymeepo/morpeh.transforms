@@ -80,14 +80,14 @@ namespace Scellecs.Morpeh.Workaround
         }
 #if MORPEH_BURST
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, Type componentType) where TUnmanaged : unmanaged
+        public static UnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, Type componentType) where TUnmanaged : unmanaged
         {
             var helper = InternalHelperTypeAssociation.Get(componentType);
             return helper.CreateUnmanagedStash<TUnmanaged>(world);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeUnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, int typeId) where TUnmanaged : unmanaged
+        public static UnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, int typeId) where TUnmanaged : unmanaged
         {
             var helper = InternalHelperTypeAssociation.Get(typeId);
             return helper.CreateUnmanagedStash<TUnmanaged>(world);
