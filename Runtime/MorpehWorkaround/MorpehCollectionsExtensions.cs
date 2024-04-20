@@ -61,5 +61,29 @@ namespace Scellecs.Morpeh.Workaround
             index = -1;
             return false;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool TryGetValue<T>(this IntHashMap<T> hashMap, int key, [CanBeNull] out T value, out int index)
+        {
+            var rem = key & hashMap.capacityMinusOne;
+
+            int next;
+            for (var i = hashMap.buckets.ptr[rem] - 1; i >= 0; i = next)
+            {
+                ref var slot = ref hashMap.slots.ptr[i];
+                if (slot.key - 1 == key)
+                {
+                    value = hashMap.data[i];
+                    index = i;
+                    return true;
+                }
+
+                next = slot.next;
+            }
+
+            value = default;
+            index = -1;
+            return false;
+        }
     }
 }
