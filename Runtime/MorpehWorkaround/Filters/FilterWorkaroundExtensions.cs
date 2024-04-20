@@ -1,6 +1,6 @@
 ﻿namespace Scellecs.Morpeh.Workaround
 {
-    public static class FilterExtensions
+    public static class FilterWorkaroundExtensions
     {
         public static FilterBuilder With(this FilterBuilder builder, int typeId)
         {
@@ -51,6 +51,16 @@
                 level = builder.level + 1,
                 includeHash = builder.includeHash,
                 excludeHash = builder.excludeHash.Combine(info.hash)
+            };
+        }
+
+        public static InternalFilterInfo GetInternalFilterInfoDangerous(Filter filter)
+        {
+            return new InternalFilterInfo()
+            {
+                archetypes = filter.archetypes,
+                archetypesLength = filter.archetypesLength,
+                archetypeHashes = filter.archetypeHashes
             };
         }
     }
