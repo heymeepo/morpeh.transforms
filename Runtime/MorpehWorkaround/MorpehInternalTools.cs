@@ -45,7 +45,7 @@ namespace Scellecs.Morpeh.Workaround
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long GetTypeId(object component)
+        public static int GetTypeId(object component)
         {
             var type = component.GetType();
             return GetTypeId(type);
