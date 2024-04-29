@@ -6,7 +6,7 @@ namespace Scellecs.Morpeh.Workaround
     {
         public Archetype[] archetypes;
         public int archetypesLength;
-        public LongHashMap<int> archetypeHashes;
+        public LongHashMap<int> archetypesHashes;
     }
 }
 

@@ -54,13 +54,16 @@
             };
         }
 
-        public static InternalFilterInfo GetInternalFilterInfoDangerous(Filter filter)
+        /// <summary>
+        /// Don't modify anything inside, don't cache archetypes, use for readonly access
+        /// </summary>
+        public static InternalFilterInfo GetInternalFilterInfo(Filter filter)
         {
             return new InternalFilterInfo()
             {
                 archetypes = filter.archetypes,
                 archetypesLength = filter.archetypesLength,
-                archetypeHashes = filter.archetypeHashes
+                archetypesHashes = filter.archetypeHashes
             };
         }
     }

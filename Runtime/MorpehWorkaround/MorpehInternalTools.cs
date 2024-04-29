@@ -86,18 +86,24 @@ namespace Scellecs.Morpeh.Workaround
             return helper.GetTypeInfo();
         }
 #if MORPEH_BURST
+        /// <summary>
+        /// This is a reinterpret cast, ensure that the memory layout of the source component type corresponds to the target type.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, Type componentType) where TUnmanaged : unmanaged
+        public static UnmanagedStash<T> CreateUnmanagedStashDangerous<T>(this World world, Type componentType) where T : unmanaged
         {
             var helper = InternalHelperTypeAssociation.Get(componentType);
-            return helper.CreateUnmanagedStash<TUnmanaged>(world);
+            return helper.CreateUnmanagedStash<T>(world);
         }
 
+        /// <summary>
+        /// This is a reinterpret cast, ensure that the memory layout of the source component type corresponds to the target type.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnmanagedStash<TUnmanaged> CreateUnmanagedStashDangerous<TUnmanaged>(this World world, int typeId) where TUnmanaged : unmanaged
+        public static UnmanagedStash<T> CreateUnmanagedStashDangerous<T>(this World world, int typeId) where T : unmanaged
         {
             var helper = InternalHelperTypeAssociation.Get(typeId);
-            return helper.CreateUnmanagedStash<TUnmanaged>(world);
+            return helper.CreateUnmanagedStash<T>(world);
         }
 #endif
     }
