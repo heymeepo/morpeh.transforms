@@ -5,12 +5,33 @@ using System.Runtime.CompilerServices;
 
 namespace Scellecs.Morpeh.Workaround
 {
-    public static class UnmanagedStashExtensions
+    public static unsafe class UnmanagedStashExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref T Get<T>(this ref UnmanagedStash<T> stash, in Entity entity) where T : unmanaged
         {
-            return ref stash.reinterpretedComponents.GetValueRefByKey(entity.Id);
+            return ref stash.data.GetValueRefByKey(entity.Id);
+        }
+
+        public static UnmanagedStash<T> Convert<T>(this ref UnmanagedStash stash) where T : unmanaged
+        {
+            var nativeIntHashMap = new NativeIntHashMap<T>()
+            {
+                lengthPtr = stash.data.lengthPtr,
+                capacityPtr = stash.data.capacityPtr,
+                capacityMinusOnePtr = stash.data.capacityMinusOnePtr,
+                lastIndexPtr = stash.data.lastIndexPtr,
+                freeIndexPtr = stash.data.freeIndexPtr,
+                buckets = stash.data.buckets,
+                slots = stash.data.slots,
+                data = (T*)stash.data.data
+            };
+
+            return new UnmanagedStash<T>()
+            {
+                data = nativeIntHashMap,
+                world = stash.world
+            };
         }
 
         /// <summary>
@@ -31,6 +52,16 @@ namespace Scellecs.Morpeh.Workaround
         {
             var helper = InternalHelperTypeAssociation.Get(typeId);
             return helper.CreateUnmanagedStash<T>(world);
+        }
+
+        /// <summary>
+        /// Create an untyped stash with a void pointer to data can be converted to a typed one.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnmanagedStash CreateUnmanagedStashDangerous(this World world, int typeId)
+        {
+            var helper = InternalHelperTypeAssociation.Get(typeId);
+            return helper.CreateUnmanagedStash(world);
         }
     }
 }

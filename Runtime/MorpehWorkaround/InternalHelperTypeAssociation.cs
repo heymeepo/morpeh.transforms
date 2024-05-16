@@ -75,6 +75,8 @@ namespace Scellecs.Morpeh.Workaround
         internal abstract void RemoveComponentBoxed(Entity entity);
 #if MORPEH_BURST
         internal abstract UnmanagedStash<TUnmanaged> CreateUnmanagedStash<TUnmanaged>(World world) where TUnmanaged : unmanaged;
+
+        internal abstract UnmanagedStash CreateUnmanagedStash(World world);
 #endif
     }
 
@@ -123,8 +125,40 @@ namespace Scellecs.Morpeh.Workaround
 
             return new UnmanagedStash<TUnmanaged>()
             {
-                reinterpretedComponents = nativeIntHashMap,
+                data = nativeIntHashMap,
                 world = world.AsNative()
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal unsafe override UnmanagedStash CreateUnmanagedStash(World world)
+        {
+            var stash = world.GetStash<T>();
+            var hashMap = stash.map;
+            var nativeIntHashMap = new NativeIntHashMap();
+
+            fixed (int* lengthPtr = &hashMap.length)
+            fixed (int* capacityPtr = &hashMap.capacity)
+            fixed (int* capacityMinusOnePtr = &hashMap.capacityMinusOne)
+            fixed (int* lastIndexPtr = &hashMap.lastIndex)
+            fixed (int* freeIndexPtr = &hashMap.freeIndex)
+            fixed (void* dataPtr = &stash.data[0])
+            {
+                nativeIntHashMap.lengthPtr = lengthPtr;
+                nativeIntHashMap.capacityPtr = capacityPtr;
+                nativeIntHashMap.capacityMinusOnePtr = capacityMinusOnePtr;
+                nativeIntHashMap.lastIndexPtr = lastIndexPtr;
+                nativeIntHashMap.freeIndexPtr = freeIndexPtr;
+                nativeIntHashMap.data = dataPtr;
+                nativeIntHashMap.buckets = hashMap.buckets.ptr;
+                nativeIntHashMap.slots = hashMap.slots.ptr;
+            }
+
+            return new UnmanagedStash()
+            {
+                data = nativeIntHashMap,
+                world = world.AsNative(),
+                elementSize = sizeof(T)
             };
         }
 #endif
