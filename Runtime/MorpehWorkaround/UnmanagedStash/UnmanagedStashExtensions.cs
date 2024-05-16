@@ -13,6 +13,7 @@ namespace Scellecs.Morpeh.Workaround
             return ref stash.data.GetValueRefByKey(entity.Id);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UnmanagedStash<T> Convert<T>(this ref UnmanagedStash stash) where T : unmanaged
         {
             var nativeIntHashMap = new NativeIntHashMap<T>()
