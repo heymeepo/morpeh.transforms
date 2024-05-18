@@ -1,7 +1,4 @@
-﻿#if MORPEH_BURST
-using Scellecs.Morpeh.Native;
-#endif
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -104,7 +101,8 @@ namespace Scellecs.Morpeh.Workaround
         {
             var stash = world.GetStash<T>();
             var hashMap = stash.map;
-            var nativeIntHashMap = new NativeIntHashMap<TUnmanaged>();
+            var hashMapMetadata = new NativeIntHashMapMetadata();
+            var unmanagedStash = new UnmanagedStash<TUnmanaged>() { elementSize = sizeof(T) };
 
             fixed (int* lengthPtr = &hashMap.length)
             fixed (int* capacityPtr = &hashMap.capacity)
@@ -113,21 +111,19 @@ namespace Scellecs.Morpeh.Workaround
             fixed (int* freeIndexPtr = &hashMap.freeIndex)
             fixed (void* dataPtr = &stash.data[0])
             {
-                nativeIntHashMap.lengthPtr = lengthPtr;
-                nativeIntHashMap.capacityPtr = capacityPtr;
-                nativeIntHashMap.capacityMinusOnePtr = capacityMinusOnePtr;
-                nativeIntHashMap.lastIndexPtr = lastIndexPtr;
-                nativeIntHashMap.freeIndexPtr = freeIndexPtr;
-                nativeIntHashMap.data = (TUnmanaged*)dataPtr;
-                nativeIntHashMap.buckets = hashMap.buckets.ptr;
-                nativeIntHashMap.slots = hashMap.slots.ptr;
+                hashMapMetadata.lengthPtr = lengthPtr;
+                hashMapMetadata.capacityPtr = capacityPtr;
+                hashMapMetadata.capacityMinusOnePtr = capacityMinusOnePtr;
+                hashMapMetadata.lastIndexPtr = lastIndexPtr;
+                hashMapMetadata.freeIndexPtr = freeIndexPtr;
+                hashMapMetadata.buckets = hashMap.buckets.ptr;
+                hashMapMetadata.slots = hashMap.slots.ptr;
+                unmanagedStash.data = (TUnmanaged*)dataPtr;
             }
 
-            return new UnmanagedStash<TUnmanaged>()
-            {
-                data = nativeIntHashMap,
-                world = world.AsNative()
-            };
+            unmanagedStash.metadata = hashMapMetadata;
+            unmanagedStash.elementSize = sizeof(T);
+            return unmanagedStash;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -135,7 +131,8 @@ namespace Scellecs.Morpeh.Workaround
         {
             var stash = world.GetStash<T>();
             var hashMap = stash.map;
-            var nativeIntHashMap = new NativeIntHashMap();
+            var hashMapMetadata = new NativeIntHashMapMetadata();
+            var unmanagedStash = new UnmanagedStash();
 
             fixed (int* lengthPtr = &hashMap.length)
             fixed (int* capacityPtr = &hashMap.capacity)
@@ -144,22 +141,19 @@ namespace Scellecs.Morpeh.Workaround
             fixed (int* freeIndexPtr = &hashMap.freeIndex)
             fixed (void* dataPtr = &stash.data[0])
             {
-                nativeIntHashMap.lengthPtr = lengthPtr;
-                nativeIntHashMap.capacityPtr = capacityPtr;
-                nativeIntHashMap.capacityMinusOnePtr = capacityMinusOnePtr;
-                nativeIntHashMap.lastIndexPtr = lastIndexPtr;
-                nativeIntHashMap.freeIndexPtr = freeIndexPtr;
-                nativeIntHashMap.data = dataPtr;
-                nativeIntHashMap.buckets = hashMap.buckets.ptr;
-                nativeIntHashMap.slots = hashMap.slots.ptr;
+                hashMapMetadata.lengthPtr = lengthPtr;
+                hashMapMetadata.capacityPtr = capacityPtr;
+                hashMapMetadata.capacityMinusOnePtr = capacityMinusOnePtr;
+                hashMapMetadata.lastIndexPtr = lastIndexPtr;
+                hashMapMetadata.freeIndexPtr = freeIndexPtr;
+                hashMapMetadata.buckets = hashMap.buckets.ptr;
+                hashMapMetadata.slots = hashMap.slots.ptr;
+                unmanagedStash.data = dataPtr;
             }
 
-            return new UnmanagedStash()
-            {
-                data = nativeIntHashMap,
-                world = world.AsNative(),
-                elementSize = sizeof(T)
-            };
+            unmanagedStash.metadata = hashMapMetadata;
+            unmanagedStash.elementSize = sizeof(T);
+            return unmanagedStash;
         }
 #endif
     }

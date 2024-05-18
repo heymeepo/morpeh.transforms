@@ -1,19 +1,28 @@
 ﻿#if MORPEH_BURST
-using Scellecs.Morpeh.Native;
+using Unity.Collections.LowLevel.Unsafe;
+using Unity.Collections;
+using System.Runtime.InteropServices;
 
 namespace Scellecs.Morpeh.Workaround
 {
-    public struct UnmanagedStash<T> where T : unmanaged
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct UnmanagedStash<T> where T : unmanaged
     {
-        public NativeIntHashMap<T> data;
-        public NativeWorld world;
+        [NativeDisableParallelForRestriction]
+        [NativeDisableUnsafePtrRestriction]
+        internal T* data;
+        internal NativeIntHashMapMetadata metadata;
+        internal int elementSize;
     }
 
-    public struct UnmanagedStash
+    [StructLayout(LayoutKind.Sequential)]
+    public unsafe struct UnmanagedStash
     {
-        public NativeIntHashMap data;
-        public NativeWorld world;
-        public int elementSize;
+        [NativeDisableParallelForRestriction]
+        [NativeDisableUnsafePtrRestriction]
+        internal void* data;
+        internal NativeIntHashMapMetadata metadata;
+        internal int elementSize;
     }
 }
 #endif

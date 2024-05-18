@@ -1,7 +1,7 @@
 ﻿#if MORPEH_BURST
-using Scellecs.Morpeh.Native;
 using System;
 using System.Runtime.CompilerServices;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace Scellecs.Morpeh.Workaround
 {
@@ -10,29 +10,23 @@ namespace Scellecs.Morpeh.Workaround
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref T Get<T>(this ref UnmanagedStash<T> stash, in Entity entity) where T : unmanaged
         {
-            return ref stash.data.GetValueRefByKey(entity.Id);
+            var idx = stash.metadata.TryGetIndex(entity.Id);
+            return ref stash.data[idx];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UnmanagedStash<T> Convert<T>(this ref UnmanagedStash stash) where T : unmanaged
+        public static int GetElementSize(this ref UnmanagedStash stash)
         {
-            var nativeIntHashMap = new NativeIntHashMap<T>()
-            {
-                lengthPtr = stash.data.lengthPtr,
-                capacityPtr = stash.data.capacityPtr,
-                capacityMinusOnePtr = stash.data.capacityMinusOnePtr,
-                lastIndexPtr = stash.data.lastIndexPtr,
-                freeIndexPtr = stash.data.freeIndexPtr,
-                buckets = stash.data.buckets,
-                slots = stash.data.slots,
-                data = (T*)stash.data.data
-            };
+            return stash.elementSize;
+        }
 
-            return new UnmanagedStash<T>()
-            {
-                data = nativeIntHashMap,
-                world = stash.world
-            };
+        /// <summary>
+        /// This is a reinterpret cast, ensure that the memory layout of the source component type corresponds to the target type.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref UnmanagedStash<T> Convert<T>(this ref UnmanagedStash stash) where T : unmanaged
+        {
+            return ref *(UnmanagedStash<T>*)UnsafeUtility.AddressOf(ref stash);
         }
 
         /// <summary>
@@ -53,6 +47,16 @@ namespace Scellecs.Morpeh.Workaround
         {
             var helper = InternalHelperTypeAssociation.Get(typeId);
             return helper.CreateUnmanagedStash<T>(world);
+        }
+
+        /// <summary>
+        /// Create an untyped stash with a void pointer to data can be converted to a typed one.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UnmanagedStash CreateUnmanagedStashDangerous(this World world, Type componentType)
+        {
+            var helper = InternalHelperTypeAssociation.Get(componentType);
+            return helper.CreateUnmanagedStash(world);
         }
 
         /// <summary>
