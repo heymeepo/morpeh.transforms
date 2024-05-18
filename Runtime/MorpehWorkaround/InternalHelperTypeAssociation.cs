@@ -102,7 +102,7 @@ namespace Scellecs.Morpeh.Workaround
             var stash = world.GetStash<T>();
             var hashMap = stash.map;
             var hashMapMetadata = new NativeIntHashMapMetadata();
-            var unmanagedStash = new UnmanagedStash<TUnmanaged>() { elementSize = sizeof(T) };
+            var unmanagedStash = new UnmanagedStash<TUnmanaged>();
 
             fixed (int* lengthPtr = &hashMap.length)
             fixed (int* capacityPtr = &hashMap.capacity)
