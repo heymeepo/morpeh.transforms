@@ -22,9 +22,6 @@ namespace Scellecs.Morpeh.Workaround
         public int* lastIndexPtr;
 
         [NativeDisableUnsafePtrRestriction]
-        public int* freeIndexPtr;
-
-        [NativeDisableUnsafePtrRestriction]
         public int* buckets;
 
         [NativeDisableUnsafePtrRestriction]

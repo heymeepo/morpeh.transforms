@@ -17,7 +17,7 @@ namespace Scellecs.Morpeh.Workaround
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int GetElementSize(this ref UnmanagedStash stash)
         {
-            return stash.elementSize;
+            return (int)stash.elementSize;
         }
 
         /// <summary>

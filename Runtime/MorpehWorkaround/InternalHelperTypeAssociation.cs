@@ -108,21 +108,19 @@ namespace Scellecs.Morpeh.Workaround
             fixed (int* capacityPtr = &hashMap.capacity)
             fixed (int* capacityMinusOnePtr = &hashMap.capacityMinusOne)
             fixed (int* lastIndexPtr = &hashMap.lastIndex)
-            fixed (int* freeIndexPtr = &hashMap.freeIndex)
             fixed (void* dataPtr = &stash.data[0])
             {
                 hashMapMetadata.lengthPtr = lengthPtr;
                 hashMapMetadata.capacityPtr = capacityPtr;
                 hashMapMetadata.capacityMinusOnePtr = capacityMinusOnePtr;
                 hashMapMetadata.lastIndexPtr = lastIndexPtr;
-                hashMapMetadata.freeIndexPtr = freeIndexPtr;
                 hashMapMetadata.buckets = hashMap.buckets.ptr;
                 hashMapMetadata.slots = hashMap.slots.ptr;
                 unmanagedStash.data = (TUnmanaged*)dataPtr;
             }
 
             unmanagedStash.metadata = hashMapMetadata;
-            unmanagedStash.elementSize = sizeof(T);
+            unmanagedStash.elementSize = (ulong)sizeof(T);
             return unmanagedStash;
         }
 
@@ -138,21 +136,19 @@ namespace Scellecs.Morpeh.Workaround
             fixed (int* capacityPtr = &hashMap.capacity)
             fixed (int* capacityMinusOnePtr = &hashMap.capacityMinusOne)
             fixed (int* lastIndexPtr = &hashMap.lastIndex)
-            fixed (int* freeIndexPtr = &hashMap.freeIndex)
             fixed (void* dataPtr = &stash.data[0])
             {
                 hashMapMetadata.lengthPtr = lengthPtr;
                 hashMapMetadata.capacityPtr = capacityPtr;
                 hashMapMetadata.capacityMinusOnePtr = capacityMinusOnePtr;
                 hashMapMetadata.lastIndexPtr = lastIndexPtr;
-                hashMapMetadata.freeIndexPtr = freeIndexPtr;
                 hashMapMetadata.buckets = hashMap.buckets.ptr;
                 hashMapMetadata.slots = hashMap.slots.ptr;
                 unmanagedStash.data = dataPtr;
             }
 
             unmanagedStash.metadata = hashMapMetadata;
-            unmanagedStash.elementSize = sizeof(T);
+            unmanagedStash.elementSize = (ulong)sizeof(T);
             return unmanagedStash;
         }
 #endif

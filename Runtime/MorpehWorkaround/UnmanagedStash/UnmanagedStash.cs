@@ -12,7 +12,7 @@ namespace Scellecs.Morpeh.Workaround
         [NativeDisableUnsafePtrRestriction]
         internal T* data;
         internal NativeIntHashMapMetadata metadata;
-        internal int elementSize;
+        internal ulong elementSize;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -22,7 +22,7 @@ namespace Scellecs.Morpeh.Workaround
         [NativeDisableUnsafePtrRestriction]
         internal void* data;
         internal NativeIntHashMapMetadata metadata;
-        internal int elementSize;
+        internal ulong elementSize;
     }
 }
 #endif
