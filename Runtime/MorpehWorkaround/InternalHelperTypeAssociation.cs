@@ -100,26 +100,26 @@ namespace Scellecs.Morpeh.Workaround
         internal unsafe override UnmanagedStash<TUnmanaged> CreateUnmanagedStash<TUnmanaged>(World world)
         {
             var stash = world.GetStash<T>();
-            var hashMap = stash.map;
-            var hashMapMetadata = new NativeIntHashMapMetadata();
+            var stashMap = stash.map;
+            var nativeStashMap = new NativeStashMap();
             var unmanagedStash = new UnmanagedStash<TUnmanaged>();
 
-            fixed (int* lengthPtr = &hashMap.length)
-            fixed (int* capacityPtr = &hashMap.capacity)
-            fixed (int* capacityMinusOnePtr = &hashMap.capacityMinusOne)
-            fixed (int* lastIndexPtr = &hashMap.lastIndex)
+            fixed (int* lengthPtr = &stashMap.length)
+            fixed (int* capacityPtr = &stashMap.capacity)
+            fixed (int* capacityMinusOnePtr = &stashMap.capacityMinusOne)
+            fixed (int* lastIndexPtr = &stashMap.lastIndex)
             fixed (void* dataPtr = &stash.data[0])
             {
-                hashMapMetadata.lengthPtr = lengthPtr;
-                hashMapMetadata.capacityPtr = capacityPtr;
-                hashMapMetadata.capacityMinusOnePtr = capacityMinusOnePtr;
-                hashMapMetadata.lastIndexPtr = lastIndexPtr;
-                hashMapMetadata.buckets = hashMap.buckets.ptr;
-                hashMapMetadata.slots = hashMap.slots.ptr;
+                nativeStashMap.lengthPtr = lengthPtr;
+                nativeStashMap.capacityPtr = capacityPtr;
+                nativeStashMap.capacityMinusOnePtr = capacityMinusOnePtr;
+                nativeStashMap.lastIndexPtr = lastIndexPtr;
+                nativeStashMap.buckets = stashMap.buckets.ptr;
+                nativeStashMap.slots = stashMap.slots.ptr;
                 unmanagedStash.data = (TUnmanaged*)dataPtr;
             }
 
-            unmanagedStash.metadata = hashMapMetadata;
+            unmanagedStash.stashMap = nativeStashMap;
             unmanagedStash.elementSize = (ulong)sizeof(T);
             return unmanagedStash;
         }
@@ -128,26 +128,26 @@ namespace Scellecs.Morpeh.Workaround
         internal unsafe override UnmanagedStash CreateUnmanagedStash(World world)
         {
             var stash = world.GetStash<T>();
-            var hashMap = stash.map;
-            var hashMapMetadata = new NativeIntHashMapMetadata();
+            var stashMap = stash.map;
+            var nativeStashMap = new NativeStashMap();
             var unmanagedStash = new UnmanagedStash();
 
-            fixed (int* lengthPtr = &hashMap.length)
-            fixed (int* capacityPtr = &hashMap.capacity)
-            fixed (int* capacityMinusOnePtr = &hashMap.capacityMinusOne)
-            fixed (int* lastIndexPtr = &hashMap.lastIndex)
+            fixed (int* lengthPtr = &stashMap.length)
+            fixed (int* capacityPtr = &stashMap.capacity)
+            fixed (int* capacityMinusOnePtr = &stashMap.capacityMinusOne)
+            fixed (int* lastIndexPtr = &stashMap.lastIndex)
             fixed (void* dataPtr = &stash.data[0])
             {
-                hashMapMetadata.lengthPtr = lengthPtr;
-                hashMapMetadata.capacityPtr = capacityPtr;
-                hashMapMetadata.capacityMinusOnePtr = capacityMinusOnePtr;
-                hashMapMetadata.lastIndexPtr = lastIndexPtr;
-                hashMapMetadata.buckets = hashMap.buckets.ptr;
-                hashMapMetadata.slots = hashMap.slots.ptr;
+                nativeStashMap.lengthPtr = lengthPtr;
+                nativeStashMap.capacityPtr = capacityPtr;
+                nativeStashMap.capacityMinusOnePtr = capacityMinusOnePtr;
+                nativeStashMap.lastIndexPtr = lastIndexPtr;
+                nativeStashMap.buckets = stashMap.buckets.ptr;
+                nativeStashMap.slots = stashMap.slots.ptr;
                 unmanagedStash.data = dataPtr;
             }
 
-            unmanagedStash.metadata = hashMapMetadata;
+            unmanagedStash.stashMap = nativeStashMap;
             unmanagedStash.elementSize = (ulong)sizeof(T);
             return unmanagedStash;
         }

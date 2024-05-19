@@ -10,7 +10,7 @@ namespace Scellecs.Morpeh.Workaround
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ref T Get<T>(this ref UnmanagedStash<T> stash, in Entity entity) where T : unmanaged
         {
-            var idx = stash.metadata.TryGetIndex(entity.Id);
+            var idx = stash.stashMap.TryGetIndex(entity.Id);
             return ref stash.data[idx];
         }
 

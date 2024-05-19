@@ -11,7 +11,7 @@ namespace Scellecs.Morpeh.Workaround
         [NativeDisableParallelForRestriction]
         [NativeDisableUnsafePtrRestriction]
         internal T* data;
-        internal NativeIntHashMapMetadata metadata;
+        internal NativeStashMap stashMap;
         internal ulong elementSize;
     }
 
@@ -21,7 +21,7 @@ namespace Scellecs.Morpeh.Workaround
         [NativeDisableParallelForRestriction]
         [NativeDisableUnsafePtrRestriction]
         internal void* data;
-        internal NativeIntHashMapMetadata metadata;
+        internal NativeStashMap stashMap;
         internal ulong elementSize;
     }
 }

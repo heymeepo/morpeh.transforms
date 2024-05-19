@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 namespace Scellecs.Morpeh.Workaround
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct NativeIntHashMapMetadata
+    internal unsafe struct NativeStashMap
     {
         [NativeDisableUnsafePtrRestriction]
         public int* lengthPtr;
@@ -28,10 +28,10 @@ namespace Scellecs.Morpeh.Workaround
         public IntHashMapSlot* slots;
     }
 
-    internal static unsafe class NativeIntHashMapMetadataExtensions
+    internal static unsafe class NativeStashMapExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int TryGetIndex(this ref NativeIntHashMapMetadata hashMap, in int key)
+        public static int TryGetIndex(this ref NativeStashMap hashMap, in int key)
         {
             var rem = key & *hashMap.capacityMinusOnePtr;
 
