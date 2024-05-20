@@ -10,9 +10,9 @@ namespace Scellecs.Morpeh.Workaround
     {
         [NativeDisableParallelForRestriction]
         [NativeDisableUnsafePtrRestriction]
-        internal T* data;
-        internal NativeStashMap stashMap;
-        internal ulong elementSize;
+        public T* data;
+        public NativeStashMap stashMap;
+        public ulong elementSize;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -20,9 +20,9 @@ namespace Scellecs.Morpeh.Workaround
     {
         [NativeDisableParallelForRestriction]
         [NativeDisableUnsafePtrRestriction]
-        internal void* data;
-        internal NativeStashMap stashMap;
-        internal ulong elementSize;
+        public void* data;
+        public NativeStashMap stashMap;
+        public ulong elementSize;
     }
 }
 #endif

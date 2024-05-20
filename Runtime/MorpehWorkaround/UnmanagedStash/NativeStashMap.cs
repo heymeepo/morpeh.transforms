@@ -2,12 +2,11 @@
 using Scellecs.Morpeh.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
 
 namespace Scellecs.Morpeh.Workaround
 {
     [StructLayout(LayoutKind.Sequential)]
-    internal unsafe struct NativeStashMap
+    public unsafe struct NativeStashMap
     {
         [NativeDisableUnsafePtrRestriction]
         public int* lengthPtr;
@@ -26,29 +25,6 @@ namespace Scellecs.Morpeh.Workaround
 
         [NativeDisableUnsafePtrRestriction]
         public IntHashMapSlot* slots;
-    }
-
-    internal static unsafe class NativeStashMapExtensions
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int TryGetIndex(this ref NativeStashMap hashMap, in int key)
-        {
-            var rem = key & *hashMap.capacityMinusOnePtr;
-
-            int next;
-            for (var i = hashMap.buckets[rem] - 1; i >= 0; i = next)
-            {
-                ref var slot = ref hashMap.slots[i];
-                if (slot.key - 1 == key)
-                {
-                    return i;
-                }
-
-                next = slot.next;
-            }
-
-            return -1;
-        }
     }
 }
 #endif

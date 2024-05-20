@@ -14,12 +14,6 @@ namespace Scellecs.Morpeh.Workaround
             return ref stash.data[idx];
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int GetElementSize(this ref UnmanagedStash stash)
-        {
-            return (int)stash.elementSize;
-        }
-
         /// <summary>
         /// This is a reinterpret cast, ensure that the memory layout of the source component type corresponds to the target type.
         /// </summary>
