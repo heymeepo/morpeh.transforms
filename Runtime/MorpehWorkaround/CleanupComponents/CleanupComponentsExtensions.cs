@@ -37,7 +37,7 @@ namespace Scellecs.Morpeh.Workaround
 
                 for (int i = 0; i < idsCount; i++)
                 {
-                    var stash = entity.world.stashes.GetValueByKey(cleanupIds[i]);
+                    var stash = entity.world.stashes.GetValueByKey(ids[i]);
                     stash.Clean(entity);
                 }
             }
