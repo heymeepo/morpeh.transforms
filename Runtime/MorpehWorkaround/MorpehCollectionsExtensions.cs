@@ -85,5 +85,14 @@ namespace Scellecs.Morpeh.Workaround
             index = -1;
             return false;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T* GetUnsafeDataPtr<T>(this IntHashMap<T> hashMap) where T : unmanaged
+        {
+            fixed (T* ptr = &hashMap.data[0])
+            {
+                return ptr;
+            }
+        }
     }
 }
