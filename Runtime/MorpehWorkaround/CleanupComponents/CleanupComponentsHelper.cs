@@ -61,11 +61,14 @@ namespace Scellecs.Morpeh.Workaround
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ResizeMap(int byId)
         {
-            var logBase2 = Math.Log(byId, 2);
-            int nextPower = (int)Math.Ceiling(logBase2);
-            int result = 1 << nextPower;
+            int newSize = cleanupIds.Length;
 
-            Array.Resize(ref cleanupIds, result);
+            while (newSize <= byId) 
+            {
+                newSize <<= 1;
+            }
+
+            Array.Resize(ref cleanupIds, newSize);
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

@@ -6,6 +6,13 @@ namespace Scellecs.Morpeh.Workaround
     public static class MorpehInternalTools
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe void SetComponentUnsafe(Entity entity, int typeId, void* componentDataPtr, int dataSize)
+        {
+            var helper = InternalHelperTypeAssociation.Get(typeId);
+            helper.SetComponentUnsafe(entity, componentDataPtr, dataSize);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SetComponentBoxed(this Entity entity, object component)
         {
             var type = component.GetType();

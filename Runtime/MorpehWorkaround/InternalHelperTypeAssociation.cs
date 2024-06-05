@@ -41,7 +41,7 @@ namespace Scellecs.Morpeh.Workaround
                 return Get(type);
             }
 
-            throw new ArgumentException("Invalid TypeId!");
+            throw new ArgumentException($"Invalid TypeId! {typeId}");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -67,6 +67,8 @@ namespace Scellecs.Morpeh.Workaround
 
         internal abstract TypeInfo GetTypeInfo();
 
+        internal abstract unsafe void SetComponentUnsafe(Entity entity, void* componentDataPtr, int dataSize);
+
         internal abstract void SetComponentBoxed(Entity entity, object component);
 
         internal abstract void RemoveComponentBoxed(Entity entity);
@@ -89,6 +91,14 @@ namespace Scellecs.Morpeh.Workaround
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal override TypeInfo GetTypeInfo() => ComponentId<T>.info;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal override unsafe void SetComponentUnsafe(Entity entity, void* componentDataPtr, int dataSize)
+        {
+            ref var data = ref entity.GetWorld().GetStash<T>().Add(entity);
+            var dstPtr = Unity.Collections.LowLevel.Unsafe.UnsafeUtility.AddressOf(ref data);
+            Unity.Collections.LowLevel.Unsafe.UnsafeUtility.MemCpy(dstPtr, componentDataPtr, dataSize);
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal override void SetComponentBoxed(Entity entity, object component) => entity.GetWorld().GetStash<T>().Set(entity, (T)component);
