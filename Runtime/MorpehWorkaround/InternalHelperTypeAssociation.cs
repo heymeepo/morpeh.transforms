@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Scellecs.Morpeh.Workaround.Utility;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -67,6 +68,8 @@ namespace Scellecs.Morpeh.Workaround
 
         internal abstract TypeInfo GetTypeInfo();
 
+        internal abstract EntityMapInfo GetEntityMapInfo();
+
         internal abstract unsafe void SetComponentUnsafe(Entity entity, void* componentDataPtr, int dataSize);
 
         internal abstract void SetComponentBoxed(Entity entity, object component);
@@ -81,6 +84,8 @@ namespace Scellecs.Morpeh.Workaround
 
     internal sealed class InternalAPIHelper<T> : InternalAPIHelper where T : unmanaged, IComponent
     {
+        private EntityMapInfo entityMapInfo;
+
         private InternalAPIHelper() { }
 
         [Preserve]
@@ -91,6 +96,18 @@ namespace Scellecs.Morpeh.Workaround
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal override TypeInfo GetTypeInfo() => ComponentId<T>.info;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal override EntityMapInfo GetEntityMapInfo()
+        {
+            if (entityMapInfo.isCreated == false)
+            {
+                entityMapInfo.isCreated = true;
+                entityMapInfo.offsets = ReflectionHelpers.GetOffsets<Entity>(typeof(T));
+            }
+
+            return entityMapInfo;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal override unsafe void SetComponentUnsafe(Entity entity, void* componentDataPtr, int dataSize)
@@ -162,5 +179,17 @@ namespace Scellecs.Morpeh.Workaround
             return unmanagedStash;
         }
 #endif
+    }
+
+    public struct EntityMapInfo
+    {
+        internal bool isCreated;
+        internal int[] offsets;
+
+        public readonly bool IsValid => isCreated && offsets != null && offsets.Length > 0;
+
+        public readonly int Count => offsets.Length;
+
+        public readonly int this[int index] => offsets[index];
     }
 }

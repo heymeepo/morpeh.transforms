@@ -16,7 +16,28 @@ namespace Scellecs.Morpeh.Workaround
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static NativeIntHashMap<TNative> AsNative<TNative>(this IntHashMap<TNative> hashMap) where TNative : unmanaged
         {
-            return NativeIntHashMapExtensions.AsNative(hashMap);
+            var nativeIntHashMap = new NativeIntHashMap<TNative>();
+
+            fixed (int* lengthPtr = &hashMap.length)
+            fixed (int* capacityPtr = &hashMap.capacity)
+            fixed (int* capacityMinusOnePtr = &hashMap.capacityMinusOne)
+            fixed (int* lastIndexPtr = &hashMap.lastIndex)
+            fixed (int* freeIndexPtr = &hashMap.freeIndex)
+            fixed (int* bucketsPtr = &hashMap.buckets[0])
+            fixed (IntHashMapSlot* slotsPtr = &hashMap.slots[0])
+            fixed (TNative* dataPtr = &hashMap.data[0])
+            {
+                nativeIntHashMap.lengthPtr = lengthPtr;
+                nativeIntHashMap.capacityPtr = capacityPtr;
+                nativeIntHashMap.capacityMinusOnePtr = capacityMinusOnePtr;
+                nativeIntHashMap.lastIndexPtr = lastIndexPtr;
+                nativeIntHashMap.freeIndexPtr = freeIndexPtr;
+                nativeIntHashMap.data = dataPtr;
+                nativeIntHashMap.buckets = bucketsPtr;
+                nativeIntHashMap.slots = slotsPtr;
+            }
+
+            return nativeIntHashMap;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -44,9 +65,9 @@ namespace Scellecs.Morpeh.Workaround
             var rem = key & hashMap.capacityMinusOne;
 
             int next;
-            for (var i = hashMap.buckets.ptr[rem] - 1; i >= 0; i = next)
+            for (var i = hashMap.buckets[rem] - 1; i >= 0; i = next)
             {
-                ref var slot = ref hashMap.slots.ptr[i];
+                ref var slot = ref hashMap.slots[i];
                 if (slot.key - 1 == key)
                 {
                     value = hashMap.data[i];
@@ -68,9 +89,9 @@ namespace Scellecs.Morpeh.Workaround
             var rem = key & hashMap.capacityMinusOne;
 
             int next;
-            for (var i = hashMap.buckets.ptr[rem] - 1; i >= 0; i = next)
+            for (var i = hashMap.buckets[rem] - 1; i >= 0; i = next)
             {
-                ref var slot = ref hashMap.slots.ptr[i];
+                ref var slot = ref hashMap.slots[i];
                 if (slot.key - 1 == key)
                 {
                     value = hashMap.data[i];
