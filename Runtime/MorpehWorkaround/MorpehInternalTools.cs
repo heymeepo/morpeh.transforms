@@ -6,6 +6,9 @@ namespace Scellecs.Morpeh.Workaround
     public static class MorpehInternalTools
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ref T EmptyComponentValueRef<T>(Stash<T> stash) where T : struct, IComponent => ref stash.Empty();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static EntityMapInfo GetEntityMapInfoForComponentType(Type type)
         {
             var helper = InternalHelperTypeAssociation.Get(type);
