@@ -7,7 +7,7 @@ Transform components with hierarchy for [Morpeh ECS](https://github.com/scellecs
 Install via git URL
 
 ```bash
-https://github.com/heymeepo/morpeh.transforms.git
+https://github.com/heymeepo/morpeh.transforms.git#stage-2024
 ```
 
 ## Usage
