@@ -19,7 +19,7 @@
         public int freeIndex;
 
         public IntPinnedArray buckets;
-        public PinnedArray<long> slots;
+        public LongPinnedArray slots;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public LongHashSet() : this(0)
@@ -36,7 +36,7 @@
             this.capacityMinusOne = HashHelpers.GetCapacity(capacity);
             this.capacity = this.capacityMinusOne + 1;
             this.buckets = new IntPinnedArray(this.capacity);
-            this.slots = new PinnedArray<long>(this.capacity * 2);
+            this.slots = new LongPinnedArray(this.capacity * 2);
         }
     }
 }
