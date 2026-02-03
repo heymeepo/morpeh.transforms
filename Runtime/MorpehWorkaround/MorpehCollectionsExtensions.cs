@@ -14,30 +14,25 @@ namespace Scellecs.Morpeh.Workaround
     {
 #if MORPEH_BURST
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NativeIntHashMap<TNative> AsNative<TNative>(this IntHashMap<TNative> hashMap) where TNative : unmanaged
-        {
-            var nativeIntHashMap = new NativeIntHashMap<TNative>();
+        public static NativeStash<TNative> AsNative<TNative>(this Stash<TNative> stash) where TNative : unmanaged, IComponent {
+            var slotMap = stash.map;
+            var nativeIntSlotMap = new NativeIntSlotMap();
+            var nativeStash = default(NativeStash<TNative>);
 
-            fixed (int* lengthPtr = &hashMap.length)
-            fixed (int* capacityPtr = &hashMap.capacity)
-            fixed (int* capacityMinusOnePtr = &hashMap.capacityMinusOne)
-            fixed (int* lastIndexPtr = &hashMap.lastIndex)
-            fixed (int* freeIndexPtr = &hashMap.freeIndex)
-            fixed (int* bucketsPtr = &hashMap.buckets[0])
-            fixed (IntHashMapSlot* slotsPtr = &hashMap.slots[0])
-            fixed (TNative* dataPtr = &hashMap.data[0])
-            {
-                nativeIntHashMap.lengthPtr = lengthPtr;
-                nativeIntHashMap.capacityPtr = capacityPtr;
-                nativeIntHashMap.capacityMinusOnePtr = capacityMinusOnePtr;
-                nativeIntHashMap.lastIndexPtr = lastIndexPtr;
-                nativeIntHashMap.freeIndexPtr = freeIndexPtr;
-                nativeIntHashMap.data = dataPtr;
-                nativeIntHashMap.buckets = bucketsPtr;
-                nativeIntHashMap.slots = slotsPtr;
+            fixed (int* capacityMinusOnePtr = &slotMap.capacityMinusOne)
+            fixed (TNative* dataPtr = &stash.data[0]) 
+            fixed (TNative* emptyPtr = &stash.empty) {
+                nativeIntSlotMap.capacityMinusOnePtr = capacityMinusOnePtr;
+                nativeIntSlotMap.buckets = slotMap.buckets.ptr;
+                nativeIntSlotMap.slots = slotMap.slots.ptr;
+                nativeStash.data = dataPtr;
+                nativeStash.empty = emptyPtr;
             }
 
-            return nativeIntHashMap;
+            nativeStash.map = nativeIntSlotMap;
+            nativeStash.world = stash.world.AsNative();
+
+            return nativeStash;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
